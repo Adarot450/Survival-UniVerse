@@ -119,27 +119,27 @@ void Update();
 void Start();
 void Draw();
 
-void backgroundHandeling();
-void playerMovement();
+void backgroundHandeling(); //Amr
+void playerMovement();      //Amr
 void loadTextures();
-void playerAnimation();
-void playeCollider();
-void bleedEffect();
-void playerHitboxHandeling();
-void BorderCollision();
-void lockViewToBackground();
-void whipAnimation();
-void whipCollider();
-void whipHitboxHandeling();
-void mainmenuWidgets();
-void logoAnimation();
-void menuBgRandomizer();
-void healthBarHandling();
-void addXp(float xpToAdd);
-void takeDamage(float damage);
-void heal(float amount);
-void ZombieAnimation();
-void playerTouchingZombie();
+void playerAnimation();     //Amr
+void playeCollider();       //Amr
+void bleedEffect();         //Yassin
+void playerHitboxHandeling();//Amr
+void BorderCollision();      //Amr
+void lockViewToBackground(); //Amr
+void whipAnimation();        //Amr/Aly
+void whipCollider();         //Amr
+void whipHitboxHandeling();  //Amr
+void mainmenuWidgets();      //Aly
+void logoAnimation();        //Aly
+void menuBgRandomizer();     //Aly
+void healthBarHandling();    //Yassin
+void addXp(float xpToAdd);   //Yassin
+void takeDamage(float damage);//Yassin
+void heal(float amount);      //Yassin
+void ZombieAnimation();       //Adam
+void playerTouchingZombie();  //Yassin
 
 int main()
 {
@@ -432,74 +432,6 @@ void lockViewToBackground()
     // Set the lock center
     view.setCenter(desiredCenter);
 }
-void updatePlayerAndWhip()
-{
-    // === Player Animation ===
-    PLAYER_ANIMATION_TIMER += deltaTime;
-
-    if (isMoving)
-    {
-        if (PLAYER_ANIMATION_TIMER >= PLAYER_ANIMATION_RATE)
-        {
-            PLAYER_ANIMATION_TIMER = 0;
-            walkIndx = (walkIndx + 1) % 16;
-        }
-        player.setTexture(playerSheet);
-        player.setTextureRect(IntRect(0, walkIndx * 56, 40, 56));
-    }
-    else
-    {
-        player.setTexture(playerSheet);
-        player.setTextureRect(IntRect(0, 0, 40, 56));
-    }
-
-    // === Whip Animation and Cooldown ===
-    whipCooldownTimer += deltaTime;
-
-    if (whipCooldownTimer >= WHIP_COOLDOWN)
-    {
-        // Set whip initial position based on player facing
-        if (whipIndx == 0)
-        {
-            if (playerPos == 1)
-            {
-                whip.setPosition(player.getPosition().x - 100, player.getPosition().y - 75);
-                whip.setScale(1, 1);
-            }
-            else if (playerPos == 0)
-            {
-                whip.setPosition(player.getPosition().x + 100, player.getPosition().y - 75);
-                whip.setScale(-1, 1);
-            }
-        }
-
-        whipTimer += deltaTime;
-
-        if (whipTimer >= WHIP_RATE)
-        {
-            whipTimer = 0;
-            whipIndx = (whipIndx + 1) % 4;
-
-            // Move and animate the whip
-            if (whip.getScale() == Vector2f(-1, 1))
-            {
-                whip.move(-WHIP_TRAVEL_DISTANCE * deltaTime, 0);
-            }
-            else if (whip.getScale() == Vector2f(1, 1))
-            {
-                whip.move(WHIP_TRAVEL_DISTANCE * deltaTime, 0);
-            }
-
-            whip.setTexture(whipSheet);
-            whip.setTextureRect(IntRect(0, whipIndx * 170, 170, 170));
-
-            if (whipIndx == 3)
-            {
-                whipCooldownTimer = 0; // Reset cooldown after final frame
-            }
-        }
-    }
-}
 void whipAnimation()
 {
     // Update cooldown timer
@@ -558,7 +490,6 @@ void whipAnimation()
     whip.setTexture(whipSheet);
     whip.setTextureRect(IntRect(0, whipIndx * 170, 170, 170));
 }
-
 void whipCollider()
 {
     Vector2f whipPos = whip.getPosition(); // this is the origin position
