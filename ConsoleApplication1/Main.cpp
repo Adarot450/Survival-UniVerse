@@ -61,6 +61,11 @@ int ZombieAnimationIndex = 0;
 float maxHealth = 100.0f;
 float currentHealth = maxHealth;
 
+// XP system
+float maxXP = 10.0f;
+float currentXP = 0.0f;
+int playerLevel = 1;
+
 int bgIndx = 0;
 
 // Scale animation variables
@@ -81,6 +86,7 @@ Sprite background;
 Sprite whip;
 Sprite logo;
 Sprite Zombie;
+Sprite xpBarSprite;  // New XP bar sprite
 
 Texture logoTexture;
 Texture menuBackgroundTexture;
@@ -88,14 +94,16 @@ Texture playerSheet;
 Texture backgroundTexture;
 Texture whipSheet;
 Texture ZombieSheet;
+Texture xpBarTexture;  // New XP bar texture
 
 
 //Shapes
 RectangleShape playerHitbox(Vector2f(20, 40));
 RectangleShape whipHitbox(Vector2f(50, 125));
-RectangleShape healthBarBackground(Vector2f(60, 5));  // Increased width from 40 to 60
-RectangleShape healthBarFill(Vector2f(60, 5));       // Increased width from 40 to 60
+RectangleShape healthBarBackground(Vector2f(60, 5));
+RectangleShape healthBarFill(Vector2f(60, 5));
 RectangleShape ZombieHitBox(Vector2f(35, 48));
+RectangleShape xpBarFill(Vector2f(0, 15));       // Start with 0 width to be empty
 
 
 //miscellaneous
@@ -116,10 +124,10 @@ void playerMovement();
 void loadTextures();
 void playerAnimation();
 void playeCollider();
+void bleedEffect();
 void playerHitboxHandeling();
 void BorderCollision();
 void lockViewToBackground();
-void whipAnimation();
 void whipAnimation();
 void whipCollider();
 void whipHitboxHandeling();
@@ -127,10 +135,11 @@ void mainmenuWidgets();
 void logoAnimation();
 void menuBgRandomizer();
 void healthBarHandling();
+void addXp(float xpToAdd);
 void takeDamage(float damage);
 void heal(float amount);
 void ZombieAnimation();
-void enemyCollision();
+void playerTouchingZombie();
 
 int main()
 {
@@ -157,7 +166,7 @@ void Start()
     backgroundHandeling();
     loadTextures();
     mainmenuWidgets();
-    whip.setPosition(player.getPosition().x - 75, player.getPosition().y - 75); // set the start of the animation
+    //whip.setPosition(player.getPosition().x - 75, player.getPosition().y - 75); // set the start of the animation
     playerHitboxHandeling();
     whipHitboxHandeling();
 
@@ -166,19 +175,35 @@ void Start()
     healthBarFill.setFillColor(Color::Red);
     healthBarBackground.setOrigin(healthBarBackground.getSize().x / 2, healthBarBackground.getSize().y / 2);
     healthBarFill.setOrigin(healthBarFill.getSize().x / 2, healthBarFill.getSize().y / 2);
+
+    // Initialize XP bar
+    xpBarFill.setFillColor(Color::Cyan);
+    xpBarSprite.setScale(2, 2);
+    xpBarFill.setScale(1.85, 2);
+
     //whip
     whip.setOrigin(whip.getLocalBounds().width / 2, player.getLocalBounds().height / 2);
     whipHitbox.setOrigin(whipHitbox.getLocalBounds().width / 2, whipHitbox.getLocalBounds().height / 2);
 
     //Enemy
 
-    Zombie.setPosition(background.getGlobalBounds().width / 2, background.getGlobalBounds().height / 2);
+    Zombie.setPosition((background.getGlobalBounds().width / 2) + 100, background.getGlobalBounds().height / 2);
     ZombieHitBox.setFillColor(Color::Transparent);
     ZombieHitBox.setOutlineColor(Color::Red);
     ZombieHitBox.setOutlineThickness(2);
+    //position setting for xp bars
+    xpBarSprite.setPosition((1920 / 50) + 310, 1080 / 100);
+    xpBarFill.setPosition((1920 / 50) + 350, (1080 / 50) + 73);
+
+    // Reset XP to 0
+    currentXP = 0.0f;
+    //xpbar
+    xpBarFill.setFillColor(Color(0, 255, 255));
+
 }
 void Update()
 {
+
 
     window.setView(view);
 
@@ -209,17 +234,21 @@ void Update()
         playerMovement();
         playerAnimation();
         playeCollider();
-
+        playerTouchingZombie();
         whipAnimation();
         whipAnimation();
         whipCollider();
 
+        //Enemy
+        ZombieHitBox.setPosition(Zombie.getPosition());
+        Zombie.setOrigin(Zombie.getLocalBounds().width / 2, Zombie.getLocalBounds().height / 2);
+        ZombieHitBox.setOrigin(Zombie.getOrigin());
+        ZombieAnimation();
+
     }
-    //Enemy
-    ZombieHitBox.setPosition(Zombie.getPosition());
-    Zombie.setOrigin(Zombie.getLocalBounds().width / 2, Zombie.getLocalBounds().height / 2);
-    ZombieHitBox.setOrigin(Zombie.getOrigin());
-    ZombieAnimation();
+
+
+
 
 }
 void Draw()
@@ -231,24 +260,33 @@ void Draw()
         window.draw(playButton.sprite);
     }
     else if (menu == 1) { // game
+        // Draw game world (with game view)
+        window.setView(view);
         window.draw(background);
         window.draw(player);
         window.draw(playerHitbox);
-
-        // Draw health bar
-        healthBarHandling();
-        window.draw(healthBarBackground);
-        window.draw(healthBarFill);
-        //enemy
         window.draw(ZombieHitBox);
         window.draw(Zombie);
-        //whip
         if (whipIndx != 3) {
             window.draw(whip);
             window.draw(whipHitbox);
         }
+
+        // Draw UI elements (with fixed view)
+        sf::View fixedView(sf::FloatRect(0, 0, 1920, 1080));
+        window.setView(fixedView);
+
+        // Draw XP bar (fill first, then border on top)
+        window.draw(xpBarFill);      // Draw fill first
+        window.draw(xpBarSprite);    // Draw border on top
+
+        // Draw health bar (with game view)
+        window.setView(view);
+        healthBarHandling();
+        window.draw(healthBarBackground);
+        window.draw(healthBarFill);
     }
-    window.display(); //Display sprites on screen
+    window.display();
 }
 void backgroundHandeling()
 {
@@ -300,6 +338,8 @@ void loadTextures()
     menuBG[2].texture.loadFromFile("assets/menu_background3.png");
     menuBG[3].texture.loadFromFile("assets/menu_background4.png");
     ZombieSheet.loadFromFile("assets/zombie1.png");
+    xpBarTexture.loadFromFile("assets/xpbar.png");
+    xpBarSprite.setTexture(xpBarTexture);
 }
 void playerAnimation()
 {
@@ -555,19 +595,36 @@ void healthBarHandling()
     Vector2f newSize = healthBarFill.getSize();
     newSize.x = healthBarBackground.getSize().x * healthPercentage;
     healthBarFill.setSize(newSize);
-}
+}//Yassin Amr
+void addXp(float xpToAdd)
+{
+    // Add XP from orb collection
+    currentXP += xpToAdd;
+    if (currentXP > maxXP)
+    {
+        currentXP = 0; // so that it never exceeds max
+        maxXP *= 2;
+    }
+
+    // Update the fill size based on XP percentage
+    float xpPercentage = currentXP / maxXP;
+    Vector2f newSize = xpBarFill.getSize();
+    newSize.x = xpBarTexture.getSize().x * xpPercentage;
+    xpBarFill.setSize(newSize);
+
+}//Yassin Amr
 void takeDamage(float damage)
 {
     currentHealth -= damage;
     if (currentHealth < 0)
         currentHealth = 0;
-}
+}//Yassin Amr
 void heal(float amount)
 {
     currentHealth += amount;
     if (currentHealth > maxHealth)
         currentHealth = maxHealth;
-}
+}//Yassin Amr
 void mainmenuWidgets() {
     logo.setTexture(logoTexture);
     logo.setOrigin(logo.getLocalBounds().width / 2, logo.getLocalBounds().height / 2);
@@ -607,12 +664,30 @@ void ZombieAnimation() {
     ZombieAnimationIndex = (ZombieAnimationIndex + 1) % colSize;
     Zombie.setTextureRect(IntRect(ZombieAnimationIndex * 35, 0, 35, 48));
 }
-void enemyCollision();
+
+void playerTouchingZombie()
+{
+    bleedEffect();
+    if (playerHitbox.getGlobalBounds().intersects(Zombie.getGlobalBounds()))
+    {
+        takeDamage(0.09);
+        addXp(0.1);
+    }
+    // WILL REPEAT IF CONDITION FOR EACH NUMBER OF ZOMBIES ADDED, AND EACH WILL HAVE HIS OWN DAMAGE.
+}   //Yassin Amr
+void bleedEffect()
+{
+    player.setColor(Color::White);
+    if (playerHitbox.getGlobalBounds().intersects(Zombie.getGlobalBounds()))
+    {
+        player.setColor(Color::Red);
+    }
+}      //Yassin Amr 
 
 
 
 
-/*player sheet : 26 rows , first 16 are walking  size of each is 46 width and 56 height*/
+
 
 
 
