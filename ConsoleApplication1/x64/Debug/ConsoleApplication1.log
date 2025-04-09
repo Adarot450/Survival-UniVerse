@@ -1,0 +1,25 @@
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  Main.cpp
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(41,37): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(43,25): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,114): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(190,84): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(590,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\ConsoleApplication1\Main.cpp(598,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  ConsoleApplication1.vcxproj -> C:\Users\adamr\Documents\GitHub\Surivival-Uni-Verse\x64\Debug\SFML Template.exe
