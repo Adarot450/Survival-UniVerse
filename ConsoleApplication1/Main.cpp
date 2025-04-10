@@ -14,20 +14,24 @@ using namespace sf;
 
 // Constants
 const int PLAYER_SPEED = 200;
-const float PLAYER_ANIMATION_RATE = 0.05; // // Indicates how fast are we switching player's texture
+const float PLAYER_ANIMATION_RATE = 0.05; // Indicates how fast are we switching player's texture
+const float LOGO_ANIMATION_RATE = 0.06; // Indicates how fast are we switching logo's texture
 const int WHIP_TRAVEL_DISTANCE = 2000; //How far the whip moves away from the player
 const float WHIP_RATE = 0.2; //how fast are we moving through whip texture
 const float WHIP_COOLDOWN = 1.5f;
+const float PROJECTILE_SPEED = 400.0f;  // Adjust speed as needed
+const float PROJECTILE_COOLDOWN = 0.7f;  // Cooldown between auto shots
 const float EnemyAnimationRate = 0.135f;  //  How fast we are switching Enemy's texture
 
 //Global Variables
 bool isMoving = false;
 bool playerPos = true; // true = left  | false  = right
 int walkIndx = 0;
-float PLAYER_ANIMATION_TIMER = 0;// Player's texture switch timer (Always set to ZERO)
+int logoIndx = 0;
+float logoAnimationTimer = 0;// Player's texture switch timer (Always set to ZERO)
+float playerAnimationTimer = 0;// Player's texture switch timer (Always set to ZERO)
 float whipTimer = 0; //whip's animation timer (always set to ZERO)
 int  whipIndx = 0;
-float logoScale = 1.5;
 int menu = 0; // 0 = main menu | 1 = playing
 float whipCooldownTimer = 0;
 bool canAttack = true;
@@ -43,14 +47,6 @@ float currentXP = 0.0f;
 int playerLevel = 1;
 
 int bgIndx = 0;
-
-// Scale animation variables
-float scaleRange = 0.1f;  // How much it expands/shrinks
-float scaler = 2.0f;       // scaler of sin graph
-float timeElapsed = 0;    // time tracker
-float rotationAngle;
-
-
 
 
 sf::RenderWindow window(sf::VideoMode(1920, 1080), "Survival@Uni-Verse");
@@ -93,6 +89,7 @@ void Update();
 void Start();
 void Draw();
 
+void logoAnimation(); // Aly
 void backgroundHandeling(); //Amr
 void playerMovement();      //Amr
 void loadTextures();
@@ -106,12 +103,12 @@ void whipAnimation();        //Amr/Aly
 void whipCollider();         //Amr
 void whipHitboxHandeling();  //Amr
 void mainmenuWidgets();      //Aly
-void logoAnimation();        //Aly
-void menuBgRandomizer();     //Aly
 void healthBarHandling();    //Yassin
 void addXp(float xpToAdd);   //Yassin
 void takeDamage(float damage);//Yassin
 void heal(float amount);      //Yassin
+void createProjectile(); //Yassin
+void updateProjectile(); //Yassin
 void SpwaningZombies();      //Adam
 void ZombieHandler();        //Adam
 Vector2f Normalize(Vector2f vector); //Adam
@@ -123,8 +120,20 @@ struct Background {
     Texture texture;
 };
 
+Background menuBG[10]; // 0:Main menu
 
-Background menuBG[4];
+struct Projectile {
+    Sprite sprite;
+    Vector2f direction;
+    float speed;
+    bool active = false;
+};
+
+Projectile projectile;        // Single projectile instead of vector
+Texture projectileTexture;
+float projectileCooldown = 0.5f;
+float projectileTimer = 0.0f;
+
 
 struct Button {
     Sprite sprite;
@@ -132,8 +141,13 @@ struct Button {
 };
 
 Button playButton;
+Button shopButton;
+Button optionsButton;
+Button quitButton;
 
 struct ZombieType {
+    //Adam
+
     Sprite Shape;
     RectangleShape HitBox;
     Vector2f velocity;
@@ -283,23 +297,70 @@ void Update()
 
     if (menu == 0) { // main menu
 
-        window.draw(menuBG[bgIndx].sprite);
+        window.draw(menuBG[0].sprite);
         logoAnimation();
 
         if (playButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
         {
-            playButton.sprite.setTextureRect(IntRect(0, 32, 128, 32));
+            playButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
             playButton.sprite.setColor(sf::Color(200, 200, 200));
             if (Mouse::isButtonPressed(Mouse::Left)) {
-                sleep(milliseconds(200));
+                sleep(milliseconds(200)); // little delay before starting game for smooth transition
                 menu = 1;
             }
         }
-
         else
         {
-            playButton.sprite.setTextureRect(IntRect(0, 0, 128, 32));
+            playButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
             playButton.sprite.setColor(Color::White);
+        }
+
+
+        if (shopButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+        {
+            shopButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+            shopButton.sprite.setColor(sf::Color(200, 200, 200));
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                sleep(milliseconds(200)); // little delay before starting game for smooth transition
+                menu = 1;
+            }
+        }
+        else
+        {
+            shopButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+            shopButton.sprite.setColor(Color::White);
+        }
+
+
+        if (optionsButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+        {
+            optionsButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+            optionsButton.sprite.setColor(sf::Color(200, 200, 200));
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                sleep(milliseconds(200)); // little delay before starting game for smooth transition
+                menu = 1;
+            }
+        }
+        else
+        {
+            optionsButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+            optionsButton.sprite.setColor(Color::White);
+        }
+
+
+        if (quitButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+        {
+            quitButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+            quitButton.sprite.setColor(sf::Color(200, 200, 200));
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                sleep(milliseconds(200)); // little delay before starting game for smooth transition
+                window.close();
+            }
+        }
+        else
+        {
+            quitButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+            quitButton.sprite.setColor(Color::White);
         }
     }
     else if (menu == 1) { // game
@@ -313,10 +374,13 @@ void Update()
         whipCollider();
         bleedEffect();
 
+        // Handle projectile
+        createProjectile();
+        updateProjectile();
+
         //Enemy
         ZombieHandler();
         SpwaningZombies();
-
     }
 
 
@@ -327,9 +391,12 @@ void Draw()
 {
     window.clear();
     if (menu == 0) { // main menu
-        window.draw(menuBG[bgIndx].sprite);
+        window.draw(menuBG[0].sprite);
         window.draw(logo);
         window.draw(playButton.sprite);
+        window.draw(shopButton.sprite);
+        window.draw(optionsButton.sprite);
+        window.draw(quitButton.sprite);
     }
     else if (menu == 1) { // game
         // Draw game world (with game view)
@@ -337,10 +404,20 @@ void Draw()
         window.draw(background);
         window.draw(player);
         window.draw(playerHitbox);
+
+
+        // Draw projectile if active
+        if (projectile.active)
+        {
+            window.draw(projectile.sprite);
+        }
+
         if (whipIndx != 3) {
             window.draw(whip);
             window.draw(whipHitbox);
         }
+
+        //Draw Zombies
         for (int i = 0; i < Zombies.size(); i++) {
             window.draw(Zombies[i].HitBox);
             window.draw(Zombies[i].Shape);
@@ -350,9 +427,10 @@ void Draw()
         sf::View fixedView(sf::FloatRect(0, 0, 1920, 1080));
         window.setView(fixedView);
 
-        // Draw XP bar (fill first, then border on top)
-        window.draw(xpBarFill);      // Draw fill first
-        window.draw(xpBarSprite);    // Draw border on top
+        // Draw XP bar
+        addXp(0.0f);
+        window.draw(xpBarFill);
+        window.draw(xpBarSprite);
 
         // Draw health bar (with game view)
         window.setView(view);
@@ -408,23 +486,24 @@ void loadTextures()
     whipSheet.loadFromFile("assets/whipsheet.png");
     logoTexture.loadFromFile("assets/Logo.png");
     playButton.texture.loadFromFile("assets/play_button.png");
-    menuBG[0].texture.loadFromFile("assets/menu_background1.png");
-    menuBG[1].texture.loadFromFile("assets/menu_background2.png");
-    menuBG[2].texture.loadFromFile("assets/menu_background3.png");
-    menuBG[3].texture.loadFromFile("assets/menu_background4.png");
+    shopButton.texture.loadFromFile("assets/shop_button.png");
+    optionsButton.texture.loadFromFile("assets/options_button.png");
+    quitButton.texture.loadFromFile("assets/quit_button.png");
+    menuBG[0].texture.loadFromFile("assets/menu_background.png");
     ZombieSheet.loadFromFile("assets/zombie1.png");
     xpBarTexture.loadFromFile("assets/xpbar.png");
     xpBarSprite.setTexture(xpBarTexture);
+    projectileTexture.loadFromFile("assets/projectile.png");
 }
 void playerAnimation()
 {
-    PLAYER_ANIMATION_TIMER += deltaTime;
+    playerAnimationTimer += deltaTime;
 
     if (isMoving)
     {
-        if (PLAYER_ANIMATION_TIMER >= PLAYER_ANIMATION_RATE)
+        if (playerAnimationTimer >= PLAYER_ANIMATION_RATE)
         {
-            PLAYER_ANIMATION_TIMER = 0;
+            playerAnimationTimer = 0;
             walkIndx = (walkIndx + 1) % 16;
         }
         // Display the current frame from the vertical sprite sheet.
@@ -622,7 +701,6 @@ void addXp(float xpToAdd)
 void takeDamage(float damage)
 {
     currentHealth -= damage;
-
     if (currentHealth < 0)
         currentHealth = 0;
 }//Yassin Amr
@@ -634,36 +712,29 @@ void heal(float amount)
 }//Yassin Amr
 void mainmenuWidgets() {
     logo.setTexture(logoTexture);
-    logo.setOrigin(logo.getLocalBounds().width / 2, logo.getLocalBounds().height / 2);
-    logo.setPosition(1920 / 2, 1080 / 5);
+    logo.setOrigin(413.5, 263);
+    logo.setPosition(1920 / 4, 1080 / 2);
 
 
     playButton.sprite.setTexture(playButton.texture);
     playButton.sprite.setOrigin(playButton.sprite.getLocalBounds().width / 2, playButton.sprite.getLocalBounds().height / 2);
-    playButton.sprite.setPosition(1920 / 2, 1080 / 2);
-    playButton.sprite.setScale(3.0f, 3.0f);
+    playButton.sprite.setPosition(1470, 400);
+    playButton.sprite.setScale(2.0f, 2.0f);
+
+    shopButton.sprite.setTexture(shopButton.texture);
+    shopButton.sprite.setOrigin(shopButton.sprite.getLocalBounds().width / 2, shopButton.sprite.getLocalBounds().height / 2);
+    shopButton.sprite.setPosition(1470, 650);
+    shopButton.sprite.setScale(2.0f, 2.0f);
+
+    optionsButton.sprite.setTexture(optionsButton.texture);
+    optionsButton.sprite.setOrigin(optionsButton.sprite.getLocalBounds().width / 2, optionsButton.sprite.getLocalBounds().height / 2);
+    optionsButton.sprite.setPosition(1470, 900);
+    optionsButton.sprite.setScale(2.0f, 2.0f);
+
+    quitButton.sprite.setTexture(quitButton.texture);
+    quitButton.sprite.setPosition(96, 54);
 
     menuBG[0].sprite.setTexture(menuBG[0].texture);
-    menuBG[1].sprite.setTexture(menuBG[1].texture);
-    menuBG[2].sprite.setTexture(menuBG[2].texture);
-    menuBG[3].sprite.setTexture(menuBG[3].texture);
-
-    menuBgRandomizer();
-}
-void menuBgRandomizer() {
-    srand(time(NULL)); // seed rand() to generate true random values
-    bgIndx = rand() % 4;
-
-}
-void logoAnimation() {
-
-    timeElapsed += deltaTime;
-
-    logoScale = 2.5 + scaleRange * sin(scaler * timeElapsed);;
-    logo.setScale(logoScale, logoScale);
-
-    float rotationAngle = sin(2 * (5 + timeElapsed));
-    logo.setRotation(rotationAngle);
 }
 
 void bleedEffect()
@@ -679,6 +750,82 @@ void bleedEffect()
         player.setColor(Color::White);
     }
 }
+
+void logoAnimation()
+{
+    logoAnimationTimer += deltaTime;
+
+
+
+    if (logoAnimationTimer >= LOGO_ANIMATION_RATE)
+    {
+        logoAnimationTimer = 0;
+        logoIndx = (logoIndx + 1) % 17;
+    }
+    // Display the current frame from the vertical sprite sheet.
+    logo.setTexture(logoTexture);
+    logo.setTextureRect(IntRect(0, logoIndx * 526, 827, 526));
+
+}
+
+Vector2f getDirectionToZombie()
+{
+    // Get direction from player to zombie
+    Vector2f zombiePos = Zombie.getPosition();
+    Vector2f playerPos = player.getPosition();
+    Vector2f direction = zombiePos - playerPos;
+
+    // Normalize the direction
+    float length = sqrt(direction.x * direction.x + direction.y * direction.y); //returning the same vector direction but the  magnitude=1
+    return Vector2f(direction.x / length, direction.y / length);
+}
+
+void createProjectile()
+{
+    if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active) //projectile.active=false at the start but to enter the function we must turn it true because the && condition is only entered when both conditions are true,but projectile.active is still false going in.
+    {
+        projectileTimer = 0;  // Reset timer
+
+        projectile.sprite.setTexture(projectileTexture);
+        projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
+        projectile.sprite.setPosition(player.getPosition());
+        projectile.active = true;
+
+        // Get direction to zombie
+        projectile.direction = getDirectionToZombie();
+        projectile.speed = PROJECTILE_SPEED;
+    }
+}
+
+void updateProjectile()
+{
+    projectileTimer += deltaTime;
+
+    if (projectile.active)
+    {
+        // Move projectile
+        projectile.sprite.move(projectile.direction * projectile.speed * deltaTime);
+
+        // Check collision with zombie
+        if (projectile.sprite.getGlobalBounds().intersects(Zombie.getGlobalBounds()))
+        {
+            projectile.active = false;
+            // Damage logic would go here
+        }
+
+        // Check if projectile is off screen
+        Vector2f pos = projectile.sprite.getPosition();
+        if (pos.x < 0 || pos.x > background.getGlobalBounds().width ||
+            pos.y < 0 || pos.y > background.getGlobalBounds().height)
+        {
+            projectile.active = false;
+        }
+    }
+
+    // Always try to create a new projectile if there isn't one active
+    createProjectile();
+}
+
 void SpwaningZombies() {
     if (Keyboard::isKeyPressed(Keyboard::Z) && Zombies.size() == 0) {
         ZombieType newZombie;
@@ -686,11 +833,13 @@ void SpwaningZombies() {
         Zombies.push_back(newZombie);
     }
 }
+
 Vector2f Normalize(Vector2f vector) {
     float mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2));
     Vector2f res = Vector2f(vector.x / mag, vector.y / mag);
     return res;
 }
+
 void ZombieHandler() {
     for (int i = 0; i < Zombies.size(); i++) {
         if (Zombies[i].isDead) {
@@ -700,10 +849,3 @@ void ZombieHandler() {
         Zombies[i].Update();
     }
 }
-
-
-
-
-
-
-
