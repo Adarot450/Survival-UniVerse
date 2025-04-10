@@ -109,10 +109,11 @@ void healthBarHandling();    //Yassin
 void addXp(float xpToAdd);   //Yassin
 void takeDamage(float damage);//Yassin
 void heal(float amount);      //Yassin
-//void createProjectile(); //Yassin
-//void updateProjectile(); //Yassin
+void createProjectile(); //Yassin
+void updateProjectile(); //Yassin
 void SpwaningZombies();      //Adam
 void ZombieHandler();        //Adam
+void separateZombies(); //Adam
 Vector2f Normalize(Vector2f vector); //Adam
 
 //structs
@@ -175,7 +176,7 @@ struct ZombieType {
 
         Shape.setOrigin(Shape.getLocalBounds().width / 2, Shape.getLocalBounds().height / 2);
 
-        Shape.setPosition(player.getPosition().x + 100, player.getPosition().y);
+        //Shape.setPosition(player.getPosition().x + 100, player.getPosition().y);
     }
 
     void Update() {
@@ -377,12 +378,13 @@ void Update()
         bleedEffect();
 
         // Handle projectile
-       /* createProjectile();
-        updateProjectile();*/
+        createProjectile();
+        updateProjectile();
 
         //Enemy
         ZombieHandler();
         SpwaningZombies();
+        separateZombies();
     }
 
 
@@ -770,69 +772,88 @@ void logoAnimation()
 
 }
 
-//Vector2f getDirectionToZombie()
-//{
-//    // Get direction from player to zombie
-//    Vector2f zombiePos = Zombie.getPosition();
-//    Vector2f playerPos = player.getPosition();
-//    Vector2f direction = zombiePos - playerPos;
-//
-//    //  Normalized the direction
-//    direction = Normalize(direction);
-//    return direction;
-//}
+Vector2f getDirectionToNearestZombie() {
+    if (Zombies.empty()) {
+        return Vector2f(0, 0);  // Return zero vector if no zombies
+    }
 
-//void createProjectile()
-//{
-//    if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active) //projectile.active=false at the start but to enter the function we must turn it true because the && condition is only entered when both conditions are true,but projectile.active is still false going in.
-//    {
-//        projectileTimer = 0;  // Reset timer
-//
-//        projectile.sprite.setTexture(projectileTexture);
-//        projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
-//        projectile.sprite.setPosition(player.getPosition());
-//        projectile.active = true;
-//
-//        // Get direction to zombie
-//        projectile.direction = getDirectionToZombie();
-//        projectile.speed = PROJECTILE_SPEED;
-//    }
-//}
+    float minDistance = FLT_MAX;
+    Vector2f nearestZombiePos;
 
-//void updateProjectile()
-//{
-//    projectileTimer += deltaTime;
-//
-//    if (projectile.active)
-//    {
-//        // Move projectile
-//        projectile.sprite.move(projectile.direction * projectile.speed * deltaTime);
-//
-//        // Check collision with zombie
-//        if (projectile.sprite.getGlobalBounds().intersects(Zombie.getGlobalBounds()))
-//        {
-//            projectile.active = false;
-//            // Damage logic would go here
-//        }
-//
-//        // Check if projectile is off screen
-//        Vector2f pos = projectile.sprite.getPosition();
-//        if (pos.x < 0 || pos.x > background.getGlobalBounds().width ||
-//            pos.y < 0 || pos.y > background.getGlobalBounds().height)
-//        {
-//            projectile.active = false;
-//        }
-//    }
-//
-//    // Always try to create a new projectile if there isn't one active
-//    createProjectile();
-//}
+    for (int i = 0; i < Zombies.size(); i++) {
+        float distance = sqrt(pow(Zombies[i].Shape.getPosition().x - player.getPosition().x, 2) +
+            pow(Zombies[i].Shape.getPosition().y - player.getPosition().y, 2));
+        if (distance < minDistance) {
+            minDistance = distance;
+            nearestZombiePos = Zombies[i].Shape.getPosition();
+        }
+    }
+
+    // Calculate direction to nearest zombie
+    Vector2f direction = nearestZombiePos - player.getPosition();
+    return Normalize(direction);  // Use the existing Normalize function
+}
+
+void createProjectile()
+{
+    if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active && !Zombies.empty())
+    {
+        projectileTimer = 0;  // Reset timer
+        projectile.sprite.setTexture(projectileTexture);
+        projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
+        projectile.sprite.setPosition(player.getPosition());
+        projectile.active = true;
+
+        // Get direction to nearest zombie
+        projectile.direction = getDirectionToNearestZombie();
+        projectile.speed = PROJECTILE_SPEED;
+    }
+}
+
+void updateProjectile()
+{
+    projectileTimer += deltaTime;
+
+    if (projectile.active)
+    {
+        // Move projectile
+        projectile.sprite.move(projectile.direction * projectile.speed * deltaTime);
+
+        // Check collision with all zombies
+        for (auto& zombie : Zombies) {
+            if (projectile.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds()))
+            {
+                projectile.active = false;
+                // Damage logic would go here
+                break;  // Exit loop once we hit a zombie
+            }
+        }
+
+        // Check if projectile is off screen
+        Vector2f pos = projectile.sprite.getPosition();
+        if (pos.x < 0 || pos.x > background.getGlobalBounds().width ||
+            pos.y < 0 || pos.y > background.getGlobalBounds().height)
+        {
+            projectile.active = false;
+        }
+    }
+}
 
 void SpwaningZombies() {
     SpawnTimer += deltaTime;
-    if (Keyboard::isKeyPressed(Keyboard::Z) && SpawnTimer >= SpawnDelay) {
+    if (SpawnTimer >= SpawnDelay) {
         SpawnTimer = 0;
         ZombieType newZombie;
+
+        // Random X and Y within your map bounds
+        //generate num between 0-1 for x and y
+        float x = static_cast<float>(rand()) / RAND_MAX;
+        float y = static_cast<float>(rand()) / RAND_MAX;
+        //multiply by map size
+        x *= 3820;
+        y *= 2100;
+
+        newZombie.Shape.setPosition(Vector2f(x, y));
         newZombie.Start();
         Zombies.push_back(newZombie);
     }
@@ -853,3 +874,23 @@ void ZombieHandler() {
         Zombies[i].Update();
     }
 }
+
+void separateZombies() {
+    float minDistance = 42.0f;
+    for (int i = 0; i < Zombies.size(); ++i) {
+        for (int j = i + 1; j < Zombies.size(); ++j) {
+            Vector2f pos1 = Zombies[i].HitBox.getPosition();
+            Vector2f pos2 = Zombies[j].HitBox.getPosition();
+
+            Vector2f diff = pos1 - pos2;
+            float dist = sqrt(diff.x * diff.x + diff.y * diff.y);
+
+            if (dist < minDistance && dist > 0.0f) {
+                Vector2f offset = diff / dist * (minDistance - dist) / 2.0f;
+                Zombies[i].Shape.move(offset);
+                Zombies[j].Shape.move(-offset);
+            }
+        }
+    }
+}
+
