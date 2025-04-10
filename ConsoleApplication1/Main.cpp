@@ -36,6 +36,8 @@ int menu = 0; // 0 = main menu | 1 = playing
 float whipCooldownTimer = 0;
 bool canAttack = true;
 float timeSinceLastHit = 999;
+float SpawnDelay = 1;
+float SpawnTimer = 0;
 
 // Health system
 float maxHealth = 100.0f;
@@ -107,8 +109,8 @@ void healthBarHandling();    //Yassin
 void addXp(float xpToAdd);   //Yassin
 void takeDamage(float damage);//Yassin
 void heal(float amount);      //Yassin
-void createProjectile(); //Yassin
-void updateProjectile(); //Yassin
+//void createProjectile(); //Yassin
+//void updateProjectile(); //Yassin
 void SpwaningZombies();      //Adam
 void ZombieHandler();        //Adam
 Vector2f Normalize(Vector2f vector); //Adam
@@ -375,8 +377,8 @@ void Update()
         bleedEffect();
 
         // Handle projectile
-        createProjectile();
-        updateProjectile();
+       /* createProjectile();
+        updateProjectile();*/
 
         //Enemy
         ZombieHandler();
@@ -768,66 +770,68 @@ void logoAnimation()
 
 }
 
-Vector2f getDirectionToZombie()
-{
-    // Get direction from player to zombie
-    Vector2f zombiePos = Zombie.getPosition();
-    Vector2f playerPos = player.getPosition();
-    Vector2f direction = zombiePos - playerPos;
+//Vector2f getDirectionToZombie()
+//{
+//    // Get direction from player to zombie
+//    Vector2f zombiePos = Zombie.getPosition();
+//    Vector2f playerPos = player.getPosition();
+//    Vector2f direction = zombiePos - playerPos;
+//
+//    //  Normalized the direction
+//    direction = Normalize(direction);
+//    return direction;
+//}
 
-    // Normalize the direction
-    float length = sqrt(direction.x * direction.x + direction.y * direction.y); //returning the same vector direction but the  magnitude=1
-    return Vector2f(direction.x / length, direction.y / length);
-}
+//void createProjectile()
+//{
+//    if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active) //projectile.active=false at the start but to enter the function we must turn it true because the && condition is only entered when both conditions are true,but projectile.active is still false going in.
+//    {
+//        projectileTimer = 0;  // Reset timer
+//
+//        projectile.sprite.setTexture(projectileTexture);
+//        projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
+//        projectile.sprite.setPosition(player.getPosition());
+//        projectile.active = true;
+//
+//        // Get direction to zombie
+//        projectile.direction = getDirectionToZombie();
+//        projectile.speed = PROJECTILE_SPEED;
+//    }
+//}
 
-void createProjectile()
-{
-    if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active) //projectile.active=false at the start but to enter the function we must turn it true because the && condition is only entered when both conditions are true,but projectile.active is still false going in.
-    {
-        projectileTimer = 0;  // Reset timer
-
-        projectile.sprite.setTexture(projectileTexture);
-        projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
-        projectile.sprite.setPosition(player.getPosition());
-        projectile.active = true;
-
-        // Get direction to zombie
-        projectile.direction = getDirectionToZombie();
-        projectile.speed = PROJECTILE_SPEED;
-    }
-}
-
-void updateProjectile()
-{
-    projectileTimer += deltaTime;
-
-    if (projectile.active)
-    {
-        // Move projectile
-        projectile.sprite.move(projectile.direction * projectile.speed * deltaTime);
-
-        // Check collision with zombie
-        if (projectile.sprite.getGlobalBounds().intersects(Zombie.getGlobalBounds()))
-        {
-            projectile.active = false;
-            // Damage logic would go here
-        }
-
-        // Check if projectile is off screen
-        Vector2f pos = projectile.sprite.getPosition();
-        if (pos.x < 0 || pos.x > background.getGlobalBounds().width ||
-            pos.y < 0 || pos.y > background.getGlobalBounds().height)
-        {
-            projectile.active = false;
-        }
-    }
-
-    // Always try to create a new projectile if there isn't one active
-    createProjectile();
-}
+//void updateProjectile()
+//{
+//    projectileTimer += deltaTime;
+//
+//    if (projectile.active)
+//    {
+//        // Move projectile
+//        projectile.sprite.move(projectile.direction * projectile.speed * deltaTime);
+//
+//        // Check collision with zombie
+//        if (projectile.sprite.getGlobalBounds().intersects(Zombie.getGlobalBounds()))
+//        {
+//            projectile.active = false;
+//            // Damage logic would go here
+//        }
+//
+//        // Check if projectile is off screen
+//        Vector2f pos = projectile.sprite.getPosition();
+//        if (pos.x < 0 || pos.x > background.getGlobalBounds().width ||
+//            pos.y < 0 || pos.y > background.getGlobalBounds().height)
+//        {
+//            projectile.active = false;
+//        }
+//    }
+//
+//    // Always try to create a new projectile if there isn't one active
+//    createProjectile();
+//}
 
 void SpwaningZombies() {
-    if (Keyboard::isKeyPressed(Keyboard::Z) && Zombies.size() == 0) {
+    SpawnTimer += deltaTime;
+    if (Keyboard::isKeyPressed(Keyboard::Z) && SpawnTimer >= SpawnDelay) {
+        SpawnTimer = 0;
         ZombieType newZombie;
         newZombie.Start();
         Zombies.push_back(newZombie);
