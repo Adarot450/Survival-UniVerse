@@ -22,7 +22,10 @@ const float WHIP_COOLDOWN = 1.5f;
 const float PROJECTILE_SPEED = 400.0f;  // Adjust speed as needed
 const float PROJECTILE_COOLDOWN = 0.7f;  // Cooldown between auto shots
 const float EnemyAnimationRate = 0.135f;  //  How fast we are switching Enemy's texture
-float ProjectileDamage = 2.5;
+float ProjectileDamage = 10.0;
+float projectileCooldown = 0.5f;
+float projectileTimer = 0.0f;
+float projectileDespawnTime = 3.0f;
 
 //Global Variables
 bool isMoving = false;
@@ -37,7 +40,7 @@ int menu = 0; // 0 = main menu | 1 = playing
 float whipCooldownTimer = 0;
 bool canAttack = true;
 float timeSinceLastHit = 999;
-float SpawnDelay = 1;
+float SpawnDelay = 0.75;
 float SpawnTimer = 0;
 
 // Health system
@@ -67,7 +70,6 @@ Texture menuBackgroundTexture;
 Texture playerSheet;
 Texture backgroundTexture;
 Texture whipSheet;
-Texture ZombieSheet;
 Texture xpBarTexture;  // New XP bar texture
 
 
@@ -135,9 +137,6 @@ struct Projectile {
 
 Projectile projectile;        // Single projectile instead of vector
 Texture projectileTexture;
-float projectileCooldown = 0.5f;
-float projectileTimer = 0.0f;
-
 
 struct Button {
     Sprite sprite;
@@ -149,35 +148,44 @@ Button shopButton;
 Button optionsButton;
 Button quitButton;
 
-struct ZombieType {
+
+Texture zombie1TextureSheet;
+Texture zombie2TextureSheet;
+
+
+struct Enemies {
     //Adam
 
     Sprite Shape;
+    int type; // 1 :: normal || 2 :: ice
     RectangleShape HitBox;
     Vector2f velocity;
-    int DMG = 5;
-    int HP = 10;
-    int speed = 150;
+    int hitboxWidth;
+    int hitboxHeight;
+    int spriteWidth;
+    int spriteHeight;
+    int DMG;
+    int HP;
+    int speed;
+    float attackRate;
+    float attackTimer = 0;
+    int colSize;
     int AnimationIndex = 0;
     float AnimtaionTimer = 0;
-    float AnimtaionRate = 0.135f;
-    float attackTimer = 0;
-    float attackRate = 0.25;
+    float AnimtaionRate;
     bool isDead = false;
 
     void Start() {
-        Shape.setTexture(ZombieSheet);
-        Shape.setTextureRect(IntRect(0, 0, 35, 48));
+        selectTexture();
+        Shape.setTextureRect(IntRect(AnimationIndex * spriteWidth, 0, spriteWidth, spriteHeight));
+        Shape.setOrigin(Shape.getLocalBounds().width / 2, Shape.getLocalBounds().height / 2);
 
-        HitBox.setSize(Vector2f(35, 48));
+        HitBox.setSize(Vector2f(hitboxWidth, hitboxHeight));
         HitBox.setOrigin(HitBox.getLocalBounds().width / 2, HitBox.getLocalBounds().height / 2);
         HitBox.setFillColor(Color::Transparent);
         HitBox.setOutlineColor(Color::Red);
         HitBox.setOutlineThickness(2);
 
-        Shape.setOrigin(Shape.getLocalBounds().width / 2, Shape.getLocalBounds().height / 2);
-
-        //Shape.setPosition(player.getPosition().x + 100, player.getPosition().y);
     }
 
     void Update() {
@@ -186,7 +194,7 @@ struct ZombieType {
         Animtaion();
         Attack();
         Die();
-        HitBox.setPosition(Shape.getPosition());
+
     }
 
     void CalcDirection() {
@@ -196,18 +204,19 @@ struct ZombieType {
 
     void walk() {
         Shape.move(velocity.x * speed * deltaTime, velocity.y * speed * deltaTime);
+        HitBox.setPosition(Shape.getPosition());
     }
 
     void Animtaion() {
-        int colSize = 3;
         AnimtaionTimer += deltaTime;
 
         //animate
         if (AnimtaionTimer >= AnimtaionRate) {
             AnimtaionTimer = 0;
-            Shape.setTexture(ZombieSheet);
+            selectTexture();
             AnimationIndex = (AnimationIndex + 1) % colSize;
-            Shape.setTextureRect(IntRect(AnimationIndex * 35, 0, 35, 48));
+            Shape.setTextureRect(IntRect(AnimationIndex * spriteWidth, 0, spriteWidth, spriteHeight));
+
         }
         //turn left and right
         if (Shape.getPosition().x > player.getPosition().x) {
@@ -234,10 +243,19 @@ struct ZombieType {
             isDead = true;
         }
     }
-};
+    
+    void selectTexture() {
+        if (type == 1) {
+            Shape.setTexture(zombie1TextureSheet);
+        }
+        else if (type == 2) {
+            Shape.setTexture(zombie2TextureSheet);
+        }
+    }
+}ZombieTypes[2];
 
 //vectors
-vector<ZombieType>Zombies;
+vector<Enemies>Zombies;
 
 int main()
 {
@@ -292,6 +310,38 @@ void Start()
     //xpbar
     xpBarFill.setFillColor(Color(0, 255, 255));
 
+    //Enemies initilization
+    //Enemy 1
+
+    zombie1TextureSheet.loadFromFile("assets/Zombie1.png");
+    zombie2TextureSheet.loadFromFile("assets/Zombie2.png");
+
+    ZombieTypes[0].type = 1;
+
+    ZombieTypes[0].hitboxWidth = 35;
+    ZombieTypes[0].hitboxHeight = 48;
+    ZombieTypes[0].spriteWidth = 35;
+    ZombieTypes[0].spriteHeight = 48;
+    ZombieTypes[0].DMG = 5;
+    ZombieTypes[0].HP = 10;
+    ZombieTypes[0].speed = 180;
+    ZombieTypes[0].attackRate = 0.25;
+    ZombieTypes[0].colSize = 3;
+    ZombieTypes[0].AnimtaionRate = 0.135f;
+    //Enemy 2
+
+    ZombieTypes[1].type = 2;
+
+    ZombieTypes[1].hitboxWidth = 35;
+    ZombieTypes[1].hitboxHeight = 48;
+    ZombieTypes[1].spriteWidth = 35;
+    ZombieTypes[1].spriteHeight = 48;
+    ZombieTypes[1].DMG = 10;
+    ZombieTypes[1].HP = 10;
+    ZombieTypes[1].speed = 150;
+    ZombieTypes[1].attackRate = 0.25;
+    ZombieTypes[1].colSize = 3;
+    ZombieTypes[1].AnimtaionRate = 0.135f;
 }
 void Update()
 {
@@ -495,7 +545,6 @@ void loadTextures()
     optionsButton.texture.loadFromFile("assets/options_button.png");
     quitButton.texture.loadFromFile("assets/quit_button.png");
     menuBG[0].texture.loadFromFile("assets/menu_background.png");
-    ZombieSheet.loadFromFile("assets/zombie1.png");
     xpBarTexture.loadFromFile("assets/xpbar.png");
     xpBarSprite.setTexture(xpBarTexture);
     projectileTexture.loadFromFile("assets/projectile.png");
@@ -825,7 +874,7 @@ void updateProjectile()
             if (projectile.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds()))
             {
                 projectile.active = false;
-                zombie.HP -= ProjectileDamage;
+                zombie.HP -= ProjectileDamage; //Damage logic for zombie
                 break;  // Exit loop once we hit a zombie
             }
         }
@@ -833,7 +882,7 @@ void updateProjectile()
         // Check if projectile is off screen
         Vector2f pos = projectile.sprite.getPosition();
         if (pos.x < 0 || pos.x > background.getGlobalBounds().width ||
-            pos.y < 0 || pos.y > background.getGlobalBounds().height)
+            pos.y < 0 || pos.y > background.getGlobalBounds().height || projectileTimer >= projectileDespawnTime)
         {
             projectile.active = false;
         }
@@ -845,7 +894,13 @@ void SpwaningZombies() {
     SpawnTimer += deltaTime;
     if (SpawnTimer >= SpawnDelay) {
         SpawnTimer = 0;
-        ZombieType newZombie;
+        Enemies newZombie;
+        if (currentHealth >= 50) {
+            newZombie = ZombieTypes[0];
+        }
+        else {
+            newZombie = ZombieTypes[1];
+        }
 
         // Random X and Y within your map bounds
         //generate num between 0-1 for x and y
@@ -895,4 +950,3 @@ void separateZombies() {
         }
     }
 }
-
