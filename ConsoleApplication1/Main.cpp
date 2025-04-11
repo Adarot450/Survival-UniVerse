@@ -22,6 +22,7 @@ const float WHIP_COOLDOWN = 1.5f;
 const float PROJECTILE_SPEED = 400.0f;  // Adjust speed as needed
 const float PROJECTILE_COOLDOWN = 0.7f;  // Cooldown between auto shots
 const float EnemyAnimationRate = 0.135f;  //  How fast we are switching Enemy's texture
+float ProjectileDamage = 2.5;
 
 //Global Variables
 bool isMoving = false;
@@ -156,7 +157,7 @@ struct ZombieType {
     Vector2f velocity;
     int DMG = 5;
     int HP = 10;
-    int speed = 180;
+    int speed = 150;
     int AnimationIndex = 0;
     float AnimtaionTimer = 0;
     float AnimtaionRate = 0.135f;
@@ -824,7 +825,7 @@ void updateProjectile()
             if (projectile.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds()))
             {
                 projectile.active = false;
-                // Damage logic would go here
+                zombie.HP -= ProjectileDamage;
                 break;  // Exit loop once we hit a zombie
             }
         }
@@ -840,6 +841,7 @@ void updateProjectile()
 }
 
 void SpwaningZombies() {
+
     SpawnTimer += deltaTime;
     if (SpawnTimer >= SpawnDelay) {
         SpawnTimer = 0;
@@ -850,8 +852,8 @@ void SpwaningZombies() {
         float x = static_cast<float>(rand()) / RAND_MAX;
         float y = static_cast<float>(rand()) / RAND_MAX;
         //multiply by map size
-        x *= 3820;
-        y *= 2100;
+        x *= 7680;
+        y *= 4320;
 
         newZombie.Shape.setPosition(Vector2f(x, y));
         newZombie.Start();
