@@ -28,6 +28,8 @@ float projectileTimer = 0.0f;
 float projectileDespawnTime = 3.0f;
 
 //Global Variables
+bool isDead = false;
+bool isPaused = false;
 bool isMoving = false;
 bool playerPos = true; // true = left  | false  = right
 int walkIndx = 0;
@@ -40,8 +42,10 @@ int menu = 0; // 0 = main menu | 1 = playing
 float whipCooldownTimer = 0;
 bool canAttack = true;
 float timeSinceLastHit = 999;
-float SpawnDelay = 0.75;
+float SpawnDelay = 0.5;
 float SpawnTimer = 0;
+
+float clickRegisterTimer = 0.1f;
 
 // Health system
 float maxHealth = 100.0f;
@@ -83,7 +87,10 @@ RectangleShape xpBarFill(Vector2f(0, 15));       // Start with 0 width to be emp
 
 //miscellaneous
 View view(Vector2f(1920 / 2, 1080 / 2), Vector2f(1920, 1080));
+
 float deltaTime;
+
+
 
 
 
@@ -95,6 +102,10 @@ void Start();
 void Draw();
 
 void logoAnimation(); // Aly
+void mainMenuButtons(); // Aly
+void pauseMenu(); // Aly
+void gameoverMenu(); // Aly
+void pauseButtonHandler(); // Aly
 void backgroundHandeling(); //Amr
 void playerMovement();      //Amr
 void loadTextures();
@@ -126,7 +137,7 @@ struct Background {
     Texture texture;
 };
 
-Background menuBG[10]; // 0:Main menu
+Background menuBG[10]; // 0:Main menu || 1:Pause Menu
 
 struct Projectile {
     Sprite sprite;
@@ -143,10 +154,16 @@ struct Button {
     Texture texture;
 };
 
+//menu
 Button playButton;
 Button shopButton;
 Button optionsButton;
 Button quitButton;
+Button backtomenuButton;
+
+//ingame
+Button pauseButton;
+Button backButton;
 
 
 Texture zombie1TextureSheet;
@@ -214,6 +231,7 @@ struct Enemies {
         if (AnimtaionTimer >= AnimtaionRate) {
             AnimtaionTimer = 0;
             selectTexture();
+ 
             AnimationIndex = (AnimationIndex + 1) % colSize;
             Shape.setTextureRect(IntRect(AnimationIndex * spriteWidth, 0, spriteWidth, spriteHeight));
 
@@ -243,7 +261,6 @@ struct Enemies {
             isDead = true;
         }
     }
-    
     void selectTexture() {
         if (type == 1) {
             Shape.setTexture(zombie1TextureSheet);
@@ -252,6 +269,7 @@ struct Enemies {
             Shape.setTexture(zombie2TextureSheet);
         }
     }
+
 }ZombieTypes[2];
 
 //vectors
@@ -260,6 +278,7 @@ vector<Enemies>Zombies;
 int main()
 {
     Start();
+
     Clock clock;
     while (window.isOpen())
     {
@@ -305,19 +324,29 @@ void Start()
     xpBarSprite.setPosition((1920 / 50) + 310, 1080 / 100);
     xpBarFill.setPosition((1920 / 50) + 350, (1080 / 50) + 73);
 
+    //position setting for pause button
+    pauseButton.sprite.setPosition(96, 54);
+
+    //pause manu
+    backButton.sprite.setOrigin(backButton.sprite.getLocalBounds().width / 2, backButton.sprite.getLocalBounds().height / 2);
+    backButton.sprite.setPosition(1920 / 2, 1080 / 1.5);
+    backButton.sprite.setScale(1.5, 1.5);
+
+    //gameover menu
+    backtomenuButton.sprite.setOrigin(backtomenuButton.sprite.getLocalBounds().width / 2, backtomenuButton.sprite.getLocalBounds().height / 2);
+    backtomenuButton.sprite.setPosition(1920 / 2, 1080 / 1.5);
+    backtomenuButton.sprite.setScale(1.5, 1.5);
+
     // Reset XP to 0
     currentXP = 0.0f;
     //xpbar
     xpBarFill.setFillColor(Color(0, 255, 255));
 
     //Enemies initilization
-    //Enemy 1
+    //Enemy 1/Normal Zombie
 
     zombie1TextureSheet.loadFromFile("assets/Zombie1.png");
-    zombie2TextureSheet.loadFromFile("assets/Zombie2.png");
-
     ZombieTypes[0].type = 1;
-
     ZombieTypes[0].hitboxWidth = 35;
     ZombieTypes[0].hitboxHeight = 48;
     ZombieTypes[0].spriteWidth = 35;
@@ -328,10 +357,11 @@ void Start()
     ZombieTypes[0].attackRate = 0.25;
     ZombieTypes[0].colSize = 3;
     ZombieTypes[0].AnimtaionRate = 0.135f;
-    //Enemy 2
 
+    //Enemy 2/Ice Zombie
+
+    zombie2TextureSheet.loadFromFile("assets/Zombie2.png");
     ZombieTypes[1].type = 2;
-
     ZombieTypes[1].hitboxWidth = 35;
     ZombieTypes[1].hitboxHeight = 48;
     ZombieTypes[1].spriteWidth = 35;
@@ -349,81 +379,35 @@ void Update()
 
     window.setView(view);
 
+
+
     if (menu == 0) { // main menu
 
-        window.draw(menuBG[0].sprite);
         logoAnimation();
+        mainMenuButtons();
 
-        if (playButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
-        {
-            playButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-            playButton.sprite.setColor(sf::Color(200, 200, 200));
-            if (Mouse::isButtonPressed(Mouse::Left)) {
-                sleep(milliseconds(200)); // little delay before starting game for smooth transition
-                menu = 1;
-            }
-        }
-        else
-        {
-            playButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
-            playButton.sprite.setColor(Color::White);
-        }
-
-
-        if (shopButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
-        {
-            shopButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-            shopButton.sprite.setColor(sf::Color(200, 200, 200));
-            if (Mouse::isButtonPressed(Mouse::Left)) {
-                sleep(milliseconds(200)); // little delay before starting game for smooth transition
-                menu = 1;
-            }
-        }
-        else
-        {
-            shopButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
-            shopButton.sprite.setColor(Color::White);
-        }
-
-
-        if (optionsButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
-        {
-            optionsButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-            optionsButton.sprite.setColor(sf::Color(200, 200, 200));
-            if (Mouse::isButtonPressed(Mouse::Left)) {
-                sleep(milliseconds(200)); // little delay before starting game for smooth transition
-                menu = 1;
-            }
-        }
-        else
-        {
-            optionsButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
-            optionsButton.sprite.setColor(Color::White);
-        }
-
-
-        if (quitButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
-        {
-            quitButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-            quitButton.sprite.setColor(sf::Color(200, 200, 200));
-            if (Mouse::isButtonPressed(Mouse::Left)) {
-                sleep(milliseconds(200)); // little delay before starting game for smooth transition
-                window.close();
-            }
-        }
-        else
-        {
-            quitButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
-            quitButton.sprite.setColor(Color::White);
-        }
     }
     else if (menu == 1) { // game
+
+        //UI
+
+        if (isDead) {
+            gameoverMenu();
+            return;
+        }
+
+        pauseButtonHandler();
+
+        if (isPaused) {
+            pauseMenu();
+            return;
+        }
+
         BorderCollision();
         lockViewToBackground();
         playerMovement();
         playerAnimation();
         playeCollider();
-        whipAnimation();
         whipAnimation();
         whipCollider();
         bleedEffect();
@@ -436,16 +420,14 @@ void Update()
         ZombieHandler();
         SpwaningZombies();
         separateZombies();
+
     }
-
-
-
-
 }
 void Draw()
 {
     window.clear();
     if (menu == 0) { // main menu
+        window.setView(window.getDefaultView());
         window.draw(menuBG[0].sprite);
         window.draw(logo);
         window.draw(playButton.sprite);
@@ -478,8 +460,14 @@ void Draw()
             window.draw(Zombies[i].Shape);
         }
 
+        // Draw health bar (with game view)
+        window.setView(view);
+        healthBarHandling();
+        window.draw(healthBarBackground);
+        window.draw(healthBarFill);
+
         // Draw UI elements (with fixed view)
-        sf::View fixedView(sf::FloatRect(0, 0, 1920, 1080));
+        View fixedView(FloatRect(0, 0, 1920, 1080));
         window.setView(fixedView);
 
         // Draw XP bar
@@ -487,11 +475,19 @@ void Draw()
         window.draw(xpBarFill);
         window.draw(xpBarSprite);
 
-        // Draw health bar (with game view)
-        window.setView(view);
-        healthBarHandling();
-        window.draw(healthBarBackground);
-        window.draw(healthBarFill);
+        // pause menu
+        if (!isPaused) {
+            window.draw(pauseButton.sprite);
+        }
+        else
+        {
+            window.draw(menuBG[1].sprite);
+            window.draw(backButton.sprite);
+        }
+
+        if (isDead) {
+            window.draw(backtomenuButton.sprite);
+        }
     }
     window.display();
 }
@@ -545,9 +541,18 @@ void loadTextures()
     optionsButton.texture.loadFromFile("assets/options_button.png");
     quitButton.texture.loadFromFile("assets/quit_button.png");
     menuBG[0].texture.loadFromFile("assets/menu_background.png");
+    menuBG[1].texture.loadFromFile("assets/pause_background.png");
+    menuBG[1].sprite.setTexture(menuBG[1].texture);
     xpBarTexture.loadFromFile("assets/xpbar.png");
     xpBarSprite.setTexture(xpBarTexture);
     projectileTexture.loadFromFile("assets/projectile.png");
+    pauseButton.texture.loadFromFile("assets/pause_button.png");
+    pauseButton.sprite.setTexture(pauseButton.texture);
+    backButton.texture.loadFromFile("assets/back_button.png");
+    backButton.sprite.setTexture(backButton.texture);
+    backtomenuButton.texture.loadFromFile("assets/backtomenu_button.png");
+    backtomenuButton.sprite.setTexture(backtomenuButton.texture);
+
 }
 void playerAnimation()
 {
@@ -724,6 +729,10 @@ void whipHitboxHandeling()
 }
 void healthBarHandling()
 {
+    if (isDead) {
+        return;
+    }
+
     // Position health bar closer to player
     Vector2f playerPos = player.getPosition();
     healthBarBackground.setPosition(playerPos.x, playerPos.y + 30);
@@ -734,6 +743,11 @@ void healthBarHandling()
     Vector2f newSize = healthBarFill.getSize();
     newSize.x = healthBarBackground.getSize().x * healthPercentage;
     healthBarFill.setSize(newSize);
+
+    if (healthPercentage == 0) {
+        isDead = true;
+    }
+
 }//Yassin Amr
 void addXp(float xpToAdd)
 {
@@ -790,7 +804,6 @@ void mainmenuWidgets() {
 
     menuBG[0].sprite.setTexture(menuBG[0].texture);
 }
-
 void bleedEffect()
 {
     float recoveryTime = 0.3f;
@@ -804,7 +817,6 @@ void bleedEffect()
         player.setColor(Color::White);
     }
 }
-
 void logoAnimation()
 {
     logoAnimationTimer += deltaTime;
@@ -821,7 +833,70 @@ void logoAnimation()
     logo.setTextureRect(IntRect(0, logoIndx * 526, 827, 526));
 
 }
+void mainMenuButtons() {
+    if (playButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        playButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+        playButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            sleep(milliseconds(200)); // little delay before starting game for smooth transition
+            menu = 1;
+        }
+    }
+    else
+    {
+        playButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+        playButton.sprite.setColor(Color::White);
+    }
 
+
+    if (shopButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        shopButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+        shopButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            sleep(milliseconds(200)); // little delay before starting game for smooth transition
+            menu = 1;
+        }
+    }
+    else
+    {
+        shopButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+        shopButton.sprite.setColor(Color::White);
+    }
+
+
+    if (optionsButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        optionsButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+        optionsButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            sleep(milliseconds(200)); // little delay before starting game for smooth transition
+            menu = 1;
+        }
+    }
+    else
+    {
+        optionsButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+        optionsButton.sprite.setColor(Color::White);
+    }
+
+
+    if (quitButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        quitButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+        quitButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            sleep(milliseconds(200)); // little delay before starting game for smooth transition
+            window.close();
+        }
+    }
+    else
+    {
+        quitButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+        quitButton.sprite.setColor(Color::White);
+    }
+}
 Vector2f getDirectionToNearestZombie() {
     if (Zombies.empty()) {
         return Vector2f(0, 0);  // Return zero vector if no zombies
@@ -843,7 +918,6 @@ Vector2f getDirectionToNearestZombie() {
     Vector2f direction = nearestZombiePos - player.getPosition();
     return Normalize(direction);  // Use the existing Normalize function
 }
-
 void createProjectile()
 {
     if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active && !Zombies.empty())
@@ -859,7 +933,6 @@ void createProjectile()
         projectile.speed = PROJECTILE_SPEED;
     }
 }
-
 void updateProjectile()
 {
     projectileTimer += deltaTime;
@@ -888,7 +961,6 @@ void updateProjectile()
         }
     }
 }
-
 void SpwaningZombies() {
 
     SpawnTimer += deltaTime;
@@ -915,13 +987,11 @@ void SpwaningZombies() {
         Zombies.push_back(newZombie);
     }
 }
-
 Vector2f Normalize(Vector2f vector) {
     float mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2));
     Vector2f res = Vector2f(vector.x / mag, vector.y / mag);
     return res;
 }
-
 void ZombieHandler() {
     for (int i = 0; i < Zombies.size(); i++) {
         if (Zombies[i].isDead) {
@@ -931,7 +1001,6 @@ void ZombieHandler() {
         Zombies[i].Update();
     }
 }
-
 void separateZombies() {
     float minDistance = 42.0f;
     for (int i = 0; i < Zombies.size(); ++i) {
@@ -948,5 +1017,61 @@ void separateZombies() {
                 Zombies[j].Shape.move(-offset);
             }
         }
+    }
+}
+void pauseButtonHandler() {
+
+    if (pauseButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        pauseButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+        pauseButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left) && isPaused == 0) {
+            isPaused = 1;
+        }
+    }
+    else
+    {
+        pauseButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+        pauseButton.sprite.setColor(Color::White);
+    }
+
+    if (Keyboard::isKeyPressed(Keyboard::Escape) && isPaused == 0) {
+        isPaused = 1;
+    }
+}
+
+void pauseMenu() {
+    if (backButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        backButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
+        backButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            isPaused = 0;
+        }
+    }
+    else
+    {
+        backButton.sprite.setTextureRect(IntRect(0, 0, 330, 108));
+        backButton.sprite.setColor(Color::White);
+    }
+}
+void gameoverMenu() {
+    if (backtomenuButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        backtomenuButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
+        backtomenuButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            isDead = false;
+            isPaused = false;
+            menu = 0;
+            Zombies.clear();
+            currentHealth = maxHealth;
+            projectile.active = false;
+        }
+    }
+    else
+    {
+        backtomenuButton.sprite.setTextureRect(IntRect(0, 0, 330, 108));
+        backtomenuButton.sprite.setColor(Color::White);
     }
 }
