@@ -22,12 +22,19 @@ const float WHIP_COOLDOWN = 1.5f;
 const float PROJECTILE_SPEED = 400.0f;  // Adjust speed as needed
 const float PROJECTILE_COOLDOWN = 0.7f;  // Cooldown between auto shots
 const float EnemyAnimationRate = 0.135f;  //  How fast we are switching Enemy's texture
+const int numOfZombieTypes = 10;
+
 float ProjectileDamage = 10.0;
 float projectileCooldown = 0.5f;
 float projectileTimer = 0.0f;
 float projectileDespawnTime = 3.0f;
 
 //Global Variables
+
+//Upgrades
+int healingUpgradeLevel = 0;
+bool isUpgrading = false;
+
 bool isDead = false;
 bool isPaused = false;
 bool isMoving = false;
@@ -86,7 +93,7 @@ RectangleShape xpBarFill(Vector2f(0, 15));       // Start with 0 width to be emp
 
 
 //miscellaneous
-View view(Vector2f(1920 / 2, 1080 / 2), Vector2f(1920, 1080));
+View view(Vector2f(0, 0), Vector2f(1920, 1080));
 
 float deltaTime;
 
@@ -130,14 +137,30 @@ void ZombieHandler();        //Adam
 void separateZombies(); //Adam
 Vector2f Normalize(Vector2f vector); //Adam
 
+void powerUps();   //Marwan
+void healingUpgrade();   //Marwan
+void powerUpsMenu();      //Marwan
+void upgradeButtonsHandeling();   //Marwan
+void zombieInitalization(); // Adam
+
 //structs
+
+struct UpgradesItem
+{
+    Sprite sprite;
+    Texture texture;
+    string name;
+    string description;
+};
+
+UpgradesItem allUpgrades[6];
 
 struct Background {
     Sprite sprite;
     Texture texture;
 };
 
-Background menuBG[10]; // 0:Main menu || 1:Pause Menu
+Background menuBG[10]; // 0:Main menu || 1:Pause Menu || 2:Gameover || 3:Upgrading
 
 struct Projectile {
     Sprite sprite;
@@ -166,8 +189,8 @@ Button pauseButton;
 Button backButton;
 
 
-Texture zombie1TextureSheet;
-Texture zombie2TextureSheet;
+Texture zombieTextureSheets[numOfZombieTypes];
+
 
 
 struct Enemies {
@@ -193,7 +216,7 @@ struct Enemies {
     bool isDead = false;
 
     void Start() {
-        selectTexture();
+        Shape.setTexture(zombieTextureSheets[type]);
         Shape.setTextureRect(IntRect(AnimationIndex * spriteWidth, 0, spriteWidth, spriteHeight));
         Shape.setOrigin(Shape.getLocalBounds().width / 2, Shape.getLocalBounds().height / 2);
 
@@ -230,8 +253,9 @@ struct Enemies {
         //animate
         if (AnimtaionTimer >= AnimtaionRate) {
             AnimtaionTimer = 0;
-            selectTexture();
- 
+            Shape.setTexture(zombieTextureSheets[type]);
+
+
             AnimationIndex = (AnimationIndex + 1) % colSize;
             Shape.setTextureRect(IntRect(AnimationIndex * spriteWidth, 0, spriteWidth, spriteHeight));
 
@@ -261,16 +285,8 @@ struct Enemies {
             isDead = true;
         }
     }
-    void selectTexture() {
-        if (type == 1) {
-            Shape.setTexture(zombie1TextureSheet);
-        }
-        else if (type == 2) {
-            Shape.setTexture(zombie2TextureSheet);
-        }
-    }
 
-}ZombieTypes[2];
+}ZombieTypes[10];
 
 //vectors
 vector<Enemies>Zombies;
@@ -342,40 +358,15 @@ void Start()
     //xpbar
     xpBarFill.setFillColor(Color(0, 255, 255));
 
+    // Upgrades
+
+
+    allUpgrades[0].sprite.setScale(5, 5);
+
     //Enemies
-    
+
     zombiesKilled = 0;
-
-    //Enemies initilization
-    //Enemy 1/Normal Zombie
-
-    zombie1TextureSheet.loadFromFile("assets/Zombie1.png");
-    ZombieTypes[0].type = 1;
-    ZombieTypes[0].hitboxWidth = 35;
-    ZombieTypes[0].hitboxHeight = 48;
-    ZombieTypes[0].spriteWidth = 35;
-    ZombieTypes[0].spriteHeight = 48;
-    ZombieTypes[0].DMG = 5;
-    ZombieTypes[0].HP = 10;
-    ZombieTypes[0].speed = 180;
-    ZombieTypes[0].attackRate = 0.25;
-    ZombieTypes[0].colSize = 3;
-    ZombieTypes[0].AnimtaionRate = 0.135f;
-
-    //Enemy 2/Ice Zombie
-
-    zombie2TextureSheet.loadFromFile("assets/Zombie2.png");
-    ZombieTypes[1].type = 2;
-    ZombieTypes[1].hitboxWidth = 35;
-    ZombieTypes[1].hitboxHeight = 48;
-    ZombieTypes[1].spriteWidth = 35;
-    ZombieTypes[1].spriteHeight = 48;
-    ZombieTypes[1].DMG = 10;
-    ZombieTypes[1].HP = 10;
-    ZombieTypes[1].speed = 150;
-    ZombieTypes[1].attackRate = 0.25;
-    ZombieTypes[1].colSize = 3;
-    ZombieTypes[1].AnimtaionRate = 0.135f;
+    zombieInitalization();
 }
 void Update()
 {
@@ -407,6 +398,13 @@ void Update()
             return;
         }
 
+        if (isUpgrading) {
+            powerUps();
+            powerUpsMenu();
+            upgradeButtonsHandeling();
+            return;
+        }
+
         BorderCollision();
         lockViewToBackground();
         playerMovement();
@@ -424,6 +422,9 @@ void Update()
         ZombieHandler();
         SpwaningZombies();
         separateZombies();
+
+        // run upgrades
+        healingUpgrade();
 
     }
 }
@@ -464,15 +465,14 @@ void Draw()
             window.draw(Zombies[i].Shape);
         }
 
-        // Draw health bar (with game view)
-        window.setView(view);
+        // Draw health bar
         healthBarHandling();
         window.draw(healthBarBackground);
         window.draw(healthBarFill);
 
         // Draw UI elements (with fixed view)
-        View fixedView(FloatRect(0, 0, 1920, 1080));
-        window.setView(fixedView);
+        View fixedView(FloatRect(0, 0, 1920, 1080)); // yassin
+        window.setView(fixedView); // yassin
 
         // Draw XP bar
         addXp(0.0f);
@@ -491,6 +491,10 @@ void Draw()
 
         if (isDead) {
             window.draw(backtomenuButton.sprite);
+        }
+
+        if (isUpgrading) {
+            powerUpsMenu();
         }
     }
     window.display();
@@ -547,6 +551,11 @@ void loadTextures()
     menuBG[0].texture.loadFromFile("assets/menu_background.png");
     menuBG[1].texture.loadFromFile("assets/pause_background.png");
     menuBG[1].sprite.setTexture(menuBG[1].texture);
+
+    //gameover shit
+
+    menuBG[3].texture.loadFromFile("assets/upgrade_background.png");
+    menuBG[3].sprite.setTexture(menuBG[3].texture);
     xpBarTexture.loadFromFile("assets/xpbar.png");
     xpBarSprite.setTexture(xpBarTexture);
     projectileTexture.loadFromFile("assets/projectile.png");
@@ -556,6 +565,8 @@ void loadTextures()
     backButton.sprite.setTexture(backButton.texture);
     backtomenuButton.texture.loadFromFile("assets/backtomenu_button.png");
     backtomenuButton.sprite.setTexture(backtomenuButton.texture);
+    allUpgrades[0].texture.loadFromFile("assets/regen_upgrade.png");
+    allUpgrades[0].sprite.setTexture(allUpgrades[0].texture);
 
 }
 void playerAnimation()
@@ -748,7 +759,7 @@ void healthBarHandling()
     newSize.x = healthBarBackground.getSize().x * healthPercentage;
     healthBarFill.setSize(newSize);
 
-    if (healthPercentage == 0) {
+    if (currentHealth <= 0.05) {
         isDead = true;
     }
 
@@ -761,6 +772,7 @@ void addXp(float xpToAdd)
     {
         currentXP = 0; // so that it never exceeds max
         maxXP *= 2;
+        isUpgrading = true;
     }
 
     // Update the fill size based on XP percentage
@@ -965,19 +977,50 @@ void updateProjectile()
         }
     }
 }
+Enemies selectSpwanZombie() {
+    Enemies newZombie;
+    int diffrence = 5;
+    int newKilled = zombiesKilled % (diffrence * numOfZombieTypes);
+
+    if (newKilled <= diffrence * 1) {
+        newZombie = ZombieTypes[0];
+    }
+    else if (newKilled <= diffrence * 2) {
+        newZombie = ZombieTypes[1];
+    }
+    else if (newKilled <= diffrence * 3) {
+        newZombie = ZombieTypes[2];
+    }
+    else if (newKilled <= diffrence * 4) {
+        newZombie = ZombieTypes[3];
+    }
+    else if (newKilled <= diffrence * 5) {
+        newZombie = ZombieTypes[4];
+    }
+    else if (newKilled <= diffrence * 6) {
+        newZombie = ZombieTypes[5];
+    }
+    else if (newKilled <= diffrence * 7) {
+        newZombie = ZombieTypes[6];
+    }
+    else if (newKilled <= diffrence * 8) {
+        newZombie = ZombieTypes[7];
+    }
+    else if (newKilled <= diffrence * 9) {
+        newZombie = ZombieTypes[8];
+    }
+    else{
+        newZombie = ZombieTypes[9];
+    }
+    
+    return newZombie;
+}
 void SpwaningZombies() {
 
     SpawnTimer += deltaTime;
     if (SpawnTimer >= SpawnDelay) {
         SpawnTimer = 0;
-        Enemies newZombie;
-        if (zombiesKilled <= 5) {
-            newZombie = ZombieTypes[0];
-        }
-        else if (zombiesKilled > 5) {
-            newZombie = ZombieTypes[1];
-        }
-
+        Enemies newZombie = selectSpwanZombie();
         // Random X and Y within your map bounds
         //generate num between 0-1 for x and y
         float x = static_cast<float>(rand()) / RAND_MAX;
@@ -1080,3 +1123,212 @@ void gameoverMenu() {
         backtomenuButton.sprite.setColor(Color::White);
     }
 }
+
+void powerUpsMenu()
+{
+
+    window.draw(menuBG[3].sprite);
+    window.draw(allUpgrades[0].sprite);
+    //window.draw(slot1);
+    //window.draw(slot2);
+    //window.draw(allUpgrades[1].sprite);
+
+
+}
+
+void powerUps()
+{
+
+    if (allUpgrades[0].sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        if (Mouse::isButtonPressed(Mouse::Left))
+        {
+            healingUpgradeLevel++;
+            if (healingUpgradeLevel > 5)
+            {
+                healingUpgradeLevel = 5;
+            }
+            isUpgrading = false;
+        }
+    }
+}
+
+void healingUpgrade()
+{
+    int amount = (healingUpgradeLevel * 0.5) + 0.5;
+
+    if (healingUpgradeLevel > 0)
+    {
+        heal(amount * deltaTime);
+
+    }
+
+}
+
+void upgradeButtonsHandeling()
+{
+    //Origin
+    allUpgrades[0].sprite.setOrigin(allUpgrades[0].sprite.getLocalBounds().width / 2, allUpgrades[0].sprite.getLocalBounds().height / 2);
+
+
+    //Position
+    allUpgrades[0].sprite.setPosition(1920 / 2, 1080 / 2);
+
+    /*allUpgrades[1].sprite.setPosition(1830, 1000);
+    allUpgrades[2].sprite.setPosition(2320, 1000);*/
+
+}
+
+void zombieInitalization() {
+    //Enemy 1/Normal Zombie
+
+    zombieTextureSheets[0].loadFromFile("assets/Zombie1.png");
+    ZombieTypes[0].type = 0;
+    ZombieTypes[0].hitboxWidth = 35;
+    ZombieTypes[0].hitboxHeight = 48;
+    ZombieTypes[0].spriteWidth = 35;
+    ZombieTypes[0].spriteHeight = 48;
+    ZombieTypes[0].DMG = 5;
+    ZombieTypes[0].HP = 10;
+    ZombieTypes[0].speed = 180;
+    ZombieTypes[0].attackRate = 0.25;
+    ZombieTypes[0].colSize = 3;
+    ZombieTypes[0].AnimtaionRate = 0.135f;
+
+    //Enemy 2/Ice Zombie
+
+    zombieTextureSheets[1].loadFromFile("assets/Zombie2.png");
+    ZombieTypes[1].type = 1;
+    ZombieTypes[1].hitboxWidth = 35;
+    ZombieTypes[1].hitboxHeight = 48;
+    ZombieTypes[1].spriteWidth = 35;
+    ZombieTypes[1].spriteHeight = 48;
+    ZombieTypes[1].DMG = 10;
+    ZombieTypes[1].HP = 10;
+    ZombieTypes[1].speed = 150;
+    ZombieTypes[1].attackRate = 0.25;
+    ZombieTypes[1].colSize = 3;
+    ZombieTypes[1].AnimtaionRate = 0.135f;
+
+    //Enemy 3
+
+    zombieTextureSheets[2].loadFromFile("assets/Zombie3.png");
+    ZombieTypes[2].type = 2;
+    ZombieTypes[2].hitboxWidth = 35;
+    ZombieTypes[2].hitboxHeight = 48;
+    ZombieTypes[2].spriteWidth = 35;
+    ZombieTypes[2].spriteHeight = 48;
+    ZombieTypes[2].DMG = 10;
+    ZombieTypes[2].HP = 10;
+    ZombieTypes[2].speed = 150;
+    ZombieTypes[2].attackRate = 0.25;
+    ZombieTypes[2].colSize = 3;
+    ZombieTypes[2].AnimtaionRate = 0.135f;
+
+    //Enemy 4
+
+    zombieTextureSheets[3].loadFromFile("assets/Zombie4.png");
+    ZombieTypes[3].type = 3;
+    ZombieTypes[3].hitboxWidth = 35;
+    ZombieTypes[3].hitboxHeight = 48;
+    ZombieTypes[3].spriteWidth = 35;
+    ZombieTypes[3].spriteHeight = 48;
+    ZombieTypes[3].DMG = 10;
+    ZombieTypes[3].HP = 10;
+    ZombieTypes[3].speed = 150;
+    ZombieTypes[3].attackRate = 0.25;
+    ZombieTypes[3].colSize = 3;
+    ZombieTypes[3].AnimtaionRate = 0.135f;
+
+    //Enemy 5
+
+    zombieTextureSheets[4].loadFromFile("assets/Zombie5.png");
+    ZombieTypes[4].type = 4;
+    ZombieTypes[4].hitboxWidth = 35;
+    ZombieTypes[4].hitboxHeight = 48;
+    ZombieTypes[4].spriteWidth = 35;
+    ZombieTypes[4].spriteHeight = 48;
+    ZombieTypes[4].DMG = 10;
+    ZombieTypes[4].HP = 10;
+    ZombieTypes[4].speed = 150;
+    ZombieTypes[4].attackRate = 0.25;
+    ZombieTypes[4].colSize = 3;
+    ZombieTypes[4].AnimtaionRate = 0.135f;
+
+    //Enemy 6
+
+    zombieTextureSheets[5].loadFromFile("assets/Zombie6.png");
+    ZombieTypes[5].type = 5;
+    ZombieTypes[5].hitboxWidth = 35;
+    ZombieTypes[5].hitboxHeight = 43;
+    ZombieTypes[5].spriteWidth = 35;
+    ZombieTypes[5].spriteHeight = 43;
+    ZombieTypes[5].DMG = 10;
+    ZombieTypes[5].HP = 10;
+    ZombieTypes[5].speed = 150;
+    ZombieTypes[5].attackRate = 0.25;
+    ZombieTypes[5].colSize = 3;
+    ZombieTypes[5].AnimtaionRate = 0.135f;
+
+    //Enemy 7
+
+    zombieTextureSheets[6].loadFromFile("assets/Zombie7.png");
+    ZombieTypes[6].type = 6;
+    ZombieTypes[6].hitboxWidth = 35;
+    ZombieTypes[6].hitboxHeight = 48;
+    ZombieTypes[6].spriteWidth = 35;
+    ZombieTypes[6].spriteHeight = 48;
+    ZombieTypes[6].DMG = 10;
+    ZombieTypes[6].HP = 10;
+    ZombieTypes[6].speed = 150;
+    ZombieTypes[6].attackRate = 0.25;
+    ZombieTypes[6].colSize = 3;
+    ZombieTypes[6].AnimtaionRate = 0.135f;
+
+    //Enemy 8
+
+    zombieTextureSheets[7].loadFromFile("assets/Zombie8.png");
+    ZombieTypes[7].type = 7;
+    ZombieTypes[7].hitboxWidth = 35;
+    ZombieTypes[7].hitboxHeight = 41;
+    ZombieTypes[7].spriteWidth = 35;
+    ZombieTypes[7].spriteHeight = 41;
+    ZombieTypes[7].DMG = 10;
+    ZombieTypes[7].HP = 10;
+    ZombieTypes[7].speed = 150;
+    ZombieTypes[7].attackRate = 0.25;
+    ZombieTypes[7].colSize = 3;
+    ZombieTypes[7].AnimtaionRate = 0.135f;
+
+    //Enemy 9
+
+    zombieTextureSheets[8].loadFromFile("assets/Zombie9.png");
+    ZombieTypes[8].type = 8;
+    ZombieTypes[8].hitboxWidth = 35;
+    ZombieTypes[8].hitboxHeight = 48;
+    ZombieTypes[8].spriteWidth = 35;
+    ZombieTypes[8].spriteHeight = 48;
+    ZombieTypes[8].DMG = 10;
+    ZombieTypes[8].HP = 10;
+    ZombieTypes[8].speed = 150;
+    ZombieTypes[8].attackRate = 0.25;
+    ZombieTypes[8].colSize = 3;
+    ZombieTypes[8].AnimtaionRate = 0.135f;
+
+    //Enemy 10
+
+    zombieTextureSheets[9].loadFromFile("assets/Zombie10.png");
+    ZombieTypes[9].type = 9;
+    ZombieTypes[9].hitboxWidth = 35;
+    ZombieTypes[9].hitboxHeight = 48;
+    ZombieTypes[9].spriteWidth = 35;
+    ZombieTypes[9].spriteHeight = 48;
+    ZombieTypes[9].DMG = 10;
+    ZombieTypes[9].HP = 10;
+    ZombieTypes[9].speed = 150;
+    ZombieTypes[9].attackRate = 0.25;
+    ZombieTypes[9].colSize = 3;
+    ZombieTypes[9].AnimtaionRate = 0.135f;
+
+}
+
