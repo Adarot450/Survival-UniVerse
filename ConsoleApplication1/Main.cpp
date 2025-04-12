@@ -44,8 +44,8 @@ bool canAttack = true;
 float timeSinceLastHit = 999;
 float SpawnDelay = 0.5;
 float SpawnTimer = 0;
-
 float clickRegisterTimer = 0.1f;
+int zombiesKilled;
 
 // Health system
 float maxHealth = 100.0f;
@@ -341,6 +341,10 @@ void Start()
     currentXP = 0.0f;
     //xpbar
     xpBarFill.setFillColor(Color(0, 255, 255));
+
+    //Enemies
+    
+    zombiesKilled = 0;
 
     //Enemies initilization
     //Enemy 1/Normal Zombie
@@ -967,10 +971,10 @@ void SpwaningZombies() {
     if (SpawnTimer >= SpawnDelay) {
         SpawnTimer = 0;
         Enemies newZombie;
-        if (currentHealth >= 50) {
+        if (zombiesKilled <= 5) {
             newZombie = ZombieTypes[0];
         }
-        else {
+        else if (zombiesKilled > 5) {
             newZombie = ZombieTypes[1];
         }
 
@@ -996,6 +1000,7 @@ void ZombieHandler() {
     for (int i = 0; i < Zombies.size(); i++) {
         if (Zombies[i].isDead) {
             Zombies.erase(Zombies.begin() + i);
+            zombiesKilled++;
             continue;
         }
         Zombies[i].Update();
