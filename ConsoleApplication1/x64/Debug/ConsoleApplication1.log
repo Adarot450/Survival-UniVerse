@@ -1,174 +1,286 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   Main.cpp
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(16,37): warning C4305: 'initializing': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(17,35): warning C4305: 'initializing': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(19,25): warning C4305: 'initializing': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,46): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,46): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,46): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,46): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,46): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,33): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,33): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,33): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,33): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(301,33): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(354,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(420,24): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(435,40): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1002,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1022,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,113): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1039,83): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1056,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1080,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1121,30): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1194,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,111): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1240,81): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1245,35): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1261,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,110): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1270,80): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,116): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1288,86): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1477,47): warning C4244: 'return': conversion from 'float' to 'int', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1530,46): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1568,30): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,118): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:         with
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:             T=int
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:         and
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:         [
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:             T=float
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1663,88): warning C4244:         ]
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1715,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1728,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1745,75): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(16,35): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(18,25): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(257,34): warning C4305: 'initializing': truncation from 'double' to 'const float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,84): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,84): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,84): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,84): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,84): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,71): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,71): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,71): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,71): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,71): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,55): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,55): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,55): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,55): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(348,55): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,62): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,62): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,62): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,62): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,62): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,49): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,49): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,49): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,49): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(353,49): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,80): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,80): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,80): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,67): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,67): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,67): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,67): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,67): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,51): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,51): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,51): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,51): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(378,51): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,46): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,46): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,46): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,46): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,46): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,33): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,33): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,33): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,33): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(413,33): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(466,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(533,24): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(548,46): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1103,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1123,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,113): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1152,83): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1168,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1193,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1234,47): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1307,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,111): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1374,81): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1380,35): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1396,31): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,116): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1405,86): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,116): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1424,86): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1616,47): warning C4244: 'return': conversion from 'float' to 'int', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1669,46): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1708,47): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,118): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1820,88): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1873,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1886,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(1903,75): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2057,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,110): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2076,80): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,113): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2095,83): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,116): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:         with
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:             T=int
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:         ]
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:         and
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:         [
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:             T=float
+C:\Users\adamr\Documents\GitHub\Survival-UniVerse\ConsoleApplication1\Main.cpp(2121,86): warning C4244:         ]
   ConsoleApplication1.vcxproj -> C:\Users\adamr\Documents\GitHub\Survival-UniVerse\x64\Debug\SFML Template.exe
