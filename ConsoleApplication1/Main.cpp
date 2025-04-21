@@ -13,64 +13,45 @@ using namespace sf;
 
 
 // Constants
-const float PLAYER_ANIMATION_RATE = 0.05; // Indicates how fast are we switching player's texture
 const float LOGO_ANIMATION_RATE = 0.06; // Indicates how fast are we switching logo's texture
 const int WHIP_TRAVEL_DISTANCE = 2000; //How far the whip moves away from the player
 const float WHIP_RATE = 0.025; //how fast are we moving through whip texture
-const float WHIP_COOLDOWN = 1.0f;
 const float PROJECTILE_SPEED = 400.0f;  // Adjust speed as needed
 const float PROJECTILE_COOLDOWN = 0.7f;  // Cooldown between auto shots
 const float EnemyAnimationRate = 0.135f;  //  How fast we are switching Enemy's texture
 const int numOfZombieTypes = 10;
 const int UPGRADES_NUM = 6;     //Upgrades number
-float ProjectileDamage = 10.0;
-float projectileCooldown = 0.5f;
+
 float projectileTimer = 0.0f;
 float projectileDespawnTime = 3.0f;
-float whipDamage = 10.0;
 
 //Global Variables
 
 //Upgrades
+int character = 0; // 0 = main character ||
 int healingUpgradeLevel = 0;
 bool isUpgrading = false;
 bool isMenuOpen = false;
-bool isProjectileUnlocked = false;
 int whipLvl = 1;
 int swings = 0;
-
-int playerSpeed = 200;
+int shopPage = 0;
 bool isDead = false;
 bool isPaused = false;
-bool isMoving = false;
-bool playerPos = true; // true = left  | false  = right
 int walkIndx = 0;
 int logoIndx = 0;
-float logoAnimationTimer = 0;// Player's texture switch timer (Always set to ZERO)
-float playerAnimationTimer = 0;// Player's texture switch timer (Always set to ZERO)
+float logoAnimationTimer = 0;// Logo's texture switch timer (Always set to ZERO)
 float whipTimer = 0; //whip's animation timer (always set to ZERO)
 int  whipIndx = 11;
-int menu = 0; // 0 = main menu | 1 = playing
+int menu = 0; // 0 = main menu | 1 = infinite level | 2 = Shop
 float whipCooldownTimer = 0;
-bool canAttack = true;
 float timeSinceLastHit = 999;
 float SpawnDelay = 0.5;
 float SpawnTimer = 0;
 float clickRegisterTimer = 0.1f;
 int zombiesKilled;
 
-// Health system
-float maxHealth = 100.0f;
-float currentHealth = maxHealth;
 int bgIndx = 0;
-int coins = 0;
-
-// XP system
-float maxXP = 10.0f;
-float currentXP = 0.0f;
-int playerLevel = 1;
-
-
+int coins = 500;
 
 sf::RenderWindow window(sf::VideoMode(1920, 1080), "Survival@Uni-Verse", Style::Fullscreen);
 Font font;
@@ -108,11 +89,18 @@ Sound levelCompleteSound;
 Music backgroundMusic;
 
 // sprite and Textures
-Sprite player;
 Sprite background;
 Sprite whip;
 Sprite logo;
 Sprite xpBarSprite;  // New XP bar sprite
+Sprite coin;
+
+Texture logoTexture;
+Texture menuBackgroundTexture;
+Texture backgroundTexture;
+Texture whipSheet;
+Texture xpBarTexture;  // New XP bar texture
+Texture coinTexture;
 
 //texts
 Text scoreText;
@@ -120,16 +108,7 @@ Text timerText;
 Text gameoverText[4];
 Text coinsText;
 
-Texture logoTexture;
-Texture menuBackgroundTexture;
-Texture playerSheet;
-Texture backgroundTexture;
-Texture whipSheet;
-Texture xpBarTexture;  // New XP bar texture
-
-
 //Shapes
-RectangleShape playerHitbox(Vector2f(20, 40));
 RectangleShape whipHitbox(Vector2f(300, 45));
 RectangleShape healthBarBackground(Vector2f(60, 5));
 RectangleShape healthBarFill(Vector2f(60, 5));
@@ -155,24 +134,25 @@ void pauseMenu();                           // Aly
 void backtomenuButtonHandler();             // Aly
 void pauseButtonHandler();                  // Aly
 string scoreFormatHandler(int score);       // Aly
-int time();                                 // Aly 
+int time();                                 // Aly
 string timerFormatHandler(int time);        // Aly
 void resetGame();                           // Aly
 void gameoverWidgets();                     // Aly
 void gameoverMenuHandler();                 // Aly
+void shopWidgets();                         // Aly
+void nextButtonHandler();                   // Aly
+void backButtonHandler();                   // Aly
+void buyButtonHandler();                    // Aly
+void selectButtonHandler();                 // Aly
 void whipAnimation();                       // Aly & Amr
-void backgroundHandeling();                 // Amr
-void playerMovement();                      // Amr
-void playerAnimation();                     // Amr
-void playeCollider();                       // Amr
-void playerHitboxHandeling();               // Amr
+void charachterInitalization();             // Amr
 void BorderCollision();                     // Amr
 void lockViewToBackground();                // Amr
 void whipCollider();                        // Amr
 void whipHitboxHandeling();                 // Amr
 void whipDmg();                             // Amr
 string coinFormatHandler(int coins);        // Amr
-void ZombieHandler();                       // Amr & Adam
+void ZombieHandler();                       // Adam & Yassin &Amr
 void SpwaningZombies();                     // Adam
 void separateZombies();                     // Adam
 Vector2f Normalize(Vector2f vector);        // Adam
@@ -185,7 +165,7 @@ void takeDamage(float damage);              // Yassin
 void heal(float amount);                    // Yassin
 void createProjectile();                    // Yassin
 void updateProjectile();                    // Yassin
-void createXPOrb(Vector2f position);        // Yassin
+void createXPOrb(Vector2f position, float xpValue);//Yassin
 void updateXPOrbs();                        // Yassin 
 Vector2f getDirectionToNearestZombie();     // Yassin
 void powerUps();                            // Marwan
@@ -203,8 +183,6 @@ void playEnemyAppearSound();                // Maritsia
 void playFootstepsSound();                  // Maritsia
 void playEnemyHitSound();                   // Maritsia
 void playPlayerHitSound();                  // Maritsia
-
-
 
 //structs
 
@@ -228,8 +206,7 @@ struct Background {
     Sprite sprite;
     Texture texture;
 };
-
-Background menuBG[10]; // 0:Main menu || 1:Pause Menu || 2:Gameover || 3:Upgrading
+Background menuBG[10]; // 0:Main menu || 1:Pause Menu || 2:Gameover || 3:Upgrading || 4:Shop
 
 struct Projectile {
     Sprite sprite;
@@ -252,15 +229,22 @@ Button shopButton;
 Button optionsButton;
 Button quitButton;
 
+//shop
+Button backButton;
+Button nextButton;
+Button selectButton;
+Button buyButton;
+
 //ingame
 Button pauseButton;
-Button backButton;
+Button backtogameButton;
 Button backtomenuButton;
 
 
 // Add after other structs
 struct XPOrb {
     Sprite sprite;
+    float xpValue;
 };
 
 // Add after other global variables
@@ -268,6 +252,134 @@ vector<XPOrb> xpOrbs;
 Texture xpOrbTexture;
 
 Texture zombieTextureSheets[numOfZombieTypes];
+
+struct Character {
+    const float ANIMATION_RATE = 0.05; // Indicates how fast are we switching player's texture
+    int speed = 200;
+    bool position = true; // true = left  | false  = right
+    float animationTimer = 0;// Player's texture switch timer (Always set to ZERO)
+    int level = 1;
+    bool isMoving = false;
+    bool canAttack = true;
+    float whipDamage = 10.0;
+    float whipCooldown = 1.0f;
+    float ProjectileDamage = 10.0;
+    float projectileCooldown = 0.5f;
+    float playerWidth = 40;
+    float playerHeight = 56;
+    float hitboxWidth = 20;
+    float hitboxHeight = 40;
+    int playeFrameIndx = 16;
+    bool isProjectileUnlocked = false;
+    bool isWhipUnlocked = true;
+    bool isUnlocked = false;
+
+    // Health system
+    float maxHealth = 100.0f;
+    float currentHealth = maxHealth;
+
+    // XP system
+    float maxXP = 10.0f;
+    float currentXP = 0.0f;
+
+    Texture texture;
+    Sprite sprite;
+
+    RectangleShape hitbox;
+
+    void Start() {
+        sprite.setTexture(texture);
+        playerHitboxHandeling();
+    }
+    void Update() {
+        playerMovement();
+        playerAnimation();
+        playeCollider();
+    }
+
+    void playerMovement()
+    {
+        isMoving = false;
+        if (Keyboard::isKeyPressed(Keyboard::W))
+        {
+            sprite.move(0, -speed * deltaTime);
+            isMoving = true;
+            //playFootstepsSound();
+        }
+        if (Keyboard::isKeyPressed(Keyboard::S))
+        {
+            sprite.move(0, speed * deltaTime);
+            isMoving = true;
+            //playFootstepsSound();
+        }
+        if (Keyboard::isKeyPressed(Keyboard::A))
+        {
+            sprite.move(-speed * deltaTime, 0);
+            isMoving = true;
+            sprite.setScale(1, 1);
+            position = true; //Player is facing Left
+            //playFootstepsSound();
+        }
+        if (Keyboard::isKeyPressed(Keyboard::D))
+        {
+            sprite.move(speed * deltaTime, 0);
+            isMoving = true;
+            sprite.setScale(-1, 1);
+            position = false; //Player is facing right
+            //playFootstepsSound();
+
+        }
+
+        sprite.setOrigin(sprite.getLocalBounds().width / 2, sprite.getLocalBounds().height / 2);
+
+    }
+    void playerAnimation()
+    {
+        animationTimer += deltaTime;
+
+        if (isMoving)
+        {
+            if (animationTimer >= ANIMATION_RATE)
+            {
+                animationTimer = 0;
+                walkIndx = (walkIndx + 1) % playeFrameIndx;
+            }
+            // Display the current frame from the vertical sprite sheet.
+            sprite.setTextureRect(IntRect(0, walkIndx * playerHeight, playerWidth, playerHeight));
+        }
+        else
+        {
+            // When idle, use a fixed frame (for example, the first frame)
+            sprite.setTextureRect(IntRect(0, 0, playerWidth, playerHeight));
+        }
+    }
+    void playeCollider()
+    {
+
+        hitbox.setPosition(sprite.getPosition().x - 10, sprite.getPosition().y - 20);
+
+    }
+    void playerHitboxHandeling()
+    {
+        hitbox.setSize(Vector2f(hitboxWidth, hitboxHeight));
+        hitbox.setFillColor(Color::Transparent);
+        //hitbox.setOutlineColor(Color::Red);
+        //hitbox.setOutlineThickness(2);
+    }
+    void playerShopAnimation()
+    {
+        animationTimer += deltaTime;
+        if (animationTimer >= ANIMATION_RATE)
+        {
+            animationTimer = 0;
+            walkIndx = (walkIndx + 1) % playeFrameIndx;
+        }
+        // Display the current frame from the vertical sprite sheet.
+        sprite.setTextureRect(IntRect(0, walkIndx * playerHeight, playerWidth, playerHeight));
+        sprite.setOrigin(sprite.getLocalBounds().width / 2, sprite.getLocalBounds().height / 2);
+
+    }
+}player[8];
 
 struct Enemies {
     //Adam
@@ -316,7 +428,7 @@ struct Enemies {
     }
 
     void CalcDirection() {
-        velocity = player.getPosition() - Shape.getPosition(); //get line from player to zombie
+        velocity = player[character].sprite.getPosition() - Shape.getPosition(); //get line from player to zombie
         velocity = Normalize(velocity); //Normalize velocity to mulltiply it by speed
     }
 
@@ -338,7 +450,7 @@ struct Enemies {
 
         }
         //turn left and right
-        if (Shape.getPosition().x > player.getPosition().x) {
+        if (Shape.getPosition().x > player[character].sprite.getPosition().x) {
             Shape.setScale(1, 1);
         }
         else {
@@ -346,7 +458,7 @@ struct Enemies {
         }
     }
     void Attack() {
-        if (HitBox.getGlobalBounds().intersects(playerHitbox.getGlobalBounds())) {
+        if (HitBox.getGlobalBounds().intersects(player[character].hitbox.getGlobalBounds())) {
             attackTimer += deltaTime;
             if (attackTimer >= attackRate) {
                 attackTimer = 0;
@@ -364,6 +476,8 @@ struct Enemies {
     }
 
 }ZombieTypes[10];
+
+Enemies selectSpwanZombie();  //Adam
 
 //vectors
 vector<Enemies>Zombies;
@@ -391,17 +505,16 @@ int main()
 void Start()
 {
     window.setFramerateLimit(144);
-
+    player[character].Start();
     font.loadFromFile("assets/Pixel_Game.otf");
     scoreText.setFont(font);
     timerText.setFont(font);
     coinsText.setFont(font);
 
     gameoverWidgets();
-    backgroundHandeling();
     loadTextures();
     mainmenuWidgets();
-    playerHitboxHandeling();
+    shopWidgets();
     whipHitboxHandeling();
 
     loadSounds();
@@ -420,7 +533,7 @@ void Start()
     xpBarFill.setScale(1.85, 2.5);
 
     //whip
-    whip.setOrigin(whip.getLocalBounds().width / 2, player.getLocalBounds().height / 2);
+    whip.setOrigin(whip.getLocalBounds().width / 2, player[character].sprite.getLocalBounds().height / 2);
     whipHitbox.setOrigin(whipHitbox.getLocalBounds().width / 2, whipHitbox.getLocalBounds().height / 2);
 
     //position setting for xp bars
@@ -431,9 +544,9 @@ void Start()
     pauseButton.sprite.setPosition(96, 54);
 
     //pause manu
-    backButton.sprite.setOrigin(backButton.sprite.getLocalBounds().width / 2, backButton.sprite.getLocalBounds().height / 2);
-    backButton.sprite.setPosition(1920 / 1.65, 1080 / 2);
-    backButton.sprite.setScale(1.5, 1.5);
+    backtogameButton.sprite.setOrigin(backtogameButton.sprite.getLocalBounds().width / 2, backtogameButton.sprite.getLocalBounds().height / 2);
+    backtogameButton.sprite.setPosition(1920 / 1.65, 1080 / 2);
+    backtogameButton.sprite.setScale(1.5, 1.5);
 
     //gameover menu
     backtomenuButton.sprite.setOrigin(backtomenuButton.sprite.getLocalBounds().width / 2, backtomenuButton.sprite.getLocalBounds().height / 2);
@@ -455,6 +568,9 @@ void Start()
 
     //Enemies
     zombieInitalization();
+
+    // Characters
+    charachterInitalization();
 }
 void Update()
 {
@@ -462,13 +578,10 @@ void Update()
 
     window.setView(view);
 
-
-
     if (menu == 0) { // main menu
 
         logoAnimation();
         mainMenuButtons();
-
     }
     else if (menu == 1) { // game
 
@@ -477,6 +590,9 @@ void Update()
 
 
         if (isDead) {
+            backtomenuButton.sprite.setPosition(1920 / 2, 900);
+            scoreText.setPosition(1920 / 1.2 - 270, 1080 / 4 + 200);
+            timerText.setPosition(1920 / 1.2 - 270, 1080 / 4 + 350);
             backtomenuButtonHandler();
             return;
         }
@@ -502,21 +618,22 @@ void Update()
 
         BorderCollision();
         lockViewToBackground();
-        playerMovement();
-        playerAnimation();
-        playeCollider();
-        whipAnimation();
-        whipCollider();
+        player[character].Update();
         bleedEffect();
-        whipDmg();
-
 
         // Handle projectile
-        if (isProjectileUnlocked)
+        if (player[character].isProjectileUnlocked)
         {
             createProjectile();
             updateProjectile();
         }
+
+        if (player[character].isWhipUnlocked) {
+            whipAnimation();
+            whipCollider();
+            whipDmg();
+        }
+
 
         //Enemy
         ZombieHandler();
@@ -530,6 +647,15 @@ void Update()
         updateXPOrbs();
 
     }
+    else if (menu == 2) { // Shop
+        backtomenuButtonHandler();
+        backButtonHandler();
+        nextButtonHandler();
+        buyButtonHandler();
+        selectButtonHandler();
+        player[shopPage].playerShopAnimation();
+        coinsText.setString(coinFormatHandler((coins)));
+    }
 }
 void Draw()
 {
@@ -542,13 +668,15 @@ void Draw()
         window.draw(shopButton.sprite);
         window.draw(optionsButton.sprite);
         window.draw(quitButton.sprite);
+        window.draw(coinsText);
+        window.draw(coin);
     }
     else if (menu == 1) { // game
         // Draw game world (with game view)
         window.setView(view);
         window.draw(background);
-        window.draw(player);
-        window.draw(playerHitbox);
+        window.draw(player[character].sprite);
+        window.draw(player[character].hitbox);
 
         for (const auto& orb : xpOrbs) {
             window.draw(orb.sprite);
@@ -587,7 +715,6 @@ void Draw()
         window.draw(xpBarSprite);
         window.draw(scoreText);
         window.draw(timerText);
-        window.draw(coinsText);
 
         // pause menu
 
@@ -597,8 +724,11 @@ void Draw()
             window.draw(backtomenuButton.sprite);
             window.draw(scoreText);
             window.draw(timerText);
-            window.draw(coinsText);
             gameoverMenuHandler();
+        }
+        else {
+            window.draw(coinsText);
+            window.draw(coin);
         }
 
         if (isUpgrading) {
@@ -611,59 +741,43 @@ void Draw()
         else
         {
             window.draw(menuBG[1].sprite);
-            window.draw(backButton.sprite);
+            window.draw(backtogameButton.sprite);
             window.draw(backtomenuButton.sprite);
             window.draw(logo);
         }
     }
+    else if (menu == 2) { // Shop
+        window.setView(window.getDefaultView());
+        window.draw(menuBG[4].sprite);
+        window.draw(backtomenuButton.sprite);
+        window.draw(coinsText);
+        window.draw(coin);
+
+        if (shopPage != 0) {
+            window.draw(backButton.sprite);
+        }
+        if (shopPage != 7) {
+            window.draw(nextButton.sprite);
+        }
+        if (player[shopPage].isUnlocked && character != shopPage) {
+            window.draw(selectButton.sprite);
+        }
+        if (!player[shopPage].isUnlocked) {
+
+            window.draw(buyButton.sprite);
+        }
+        window.draw(player[shopPage].sprite);
+
+    }
     window.display();
 }
 
-void backgroundHandeling()
+void loadTextures()
 {
     backgroundTexture.loadFromFile("assets/Background.png");
     background.setTexture(backgroundTexture);
-    player.setPosition(background.getGlobalBounds().width / 2, background.getGlobalBounds().height / 2);
-}
-void playerMovement()
-{
-    isMoving = false;
-    if (Keyboard::isKeyPressed(Keyboard::W))
-    {
-        player.move(0, -playerSpeed * deltaTime);
-        isMoving = true;
-        //playFootstepsSound();
-    }
-    if (Keyboard::isKeyPressed(Keyboard::S))
-    {
-        player.move(0, playerSpeed * deltaTime);
-        isMoving = true;
-        //playFootstepsSound();
-    }
-    if (Keyboard::isKeyPressed(Keyboard::A))
-    {
-        player.move(-playerSpeed * deltaTime, 0);
-        isMoving = true;
-        player.setScale(1, 1);
-        playerPos = true; //Player is facing Left
-        //playFootstepsSound();
-    }
-    if (Keyboard::isKeyPressed(Keyboard::D))
-    {
-        player.move(playerSpeed * deltaTime, 0);
-        isMoving = true;
-        player.setScale(-1, 1);
-        playerPos = false; //Player is facing right
-        //playFootstepsSound();
 
-    }
-    player.setOrigin(player.getLocalBounds().width / 2, player.getLocalBounds().height / 2);
-
-
-}
-void loadTextures()
-{
-    playerSheet.loadFromFile("assets/player_sheet.png");
+    player[0].texture.loadFromFile("assets/player_sheet.png");
     whipSheet.loadFromFile("assets/whipsheet.png");
     whip.setTexture(whipSheet);
     logoTexture.loadFromFile("assets/Logo.png");
@@ -671,6 +785,14 @@ void loadTextures()
     shopButton.texture.loadFromFile("assets/shop_button.png");
     optionsButton.texture.loadFromFile("assets/options_button.png");
     quitButton.texture.loadFromFile("assets/quit_button.png");
+    backButton.texture.loadFromFile("assets/back_button.png");
+    backButton.sprite.setTexture(backButton.texture);
+    nextButton.texture.loadFromFile("assets/next_button.png");
+    nextButton.sprite.setTexture(nextButton.texture);
+    buyButton.texture.loadFromFile("assets/buy_button.png");
+    buyButton.sprite.setTexture(buyButton.texture);
+    selectButton.texture.loadFromFile("assets/select_button.png");
+    selectButton.sprite.setTexture(selectButton.texture);
     menuBG[0].texture.loadFromFile("assets/menu_background.png");
     menuBG[1].texture.loadFromFile("assets/pause_background.png");
     menuBG[1].sprite.setTexture(menuBG[1].texture);
@@ -678,16 +800,20 @@ void loadTextures()
     menuBG[2].sprite.setTexture(menuBG[2].texture);
     menuBG[3].texture.loadFromFile("assets/upgrade_background.png");
     menuBG[3].sprite.setTexture(menuBG[3].texture);
+    menuBG[4].texture.loadFromFile("assets/shop_background.png");
+    menuBG[4].sprite.setTexture(menuBG[4].texture);
     xpBarTexture.loadFromFile("assets/xpbar.png");
     xpBarSprite.setTexture(xpBarTexture);
     projectileTexture.loadFromFile("assets/projectile.png");
     pauseButton.texture.loadFromFile("assets/pause_button.png");
     pauseButton.sprite.setTexture(pauseButton.texture);
-    backButton.texture.loadFromFile("assets/back_button.png");
-    backButton.sprite.setTexture(backButton.texture);
+    backtogameButton.texture.loadFromFile("assets/backtogame_button.png");
+    backtogameButton.sprite.setTexture(backtogameButton.texture);
     backtomenuButton.texture.loadFromFile("assets/backtomenu_button.png");
     backtomenuButton.sprite.setTexture(backtomenuButton.texture);
     xpOrbTexture.loadFromFile("assets/xpOrb.png");
+    coinTexture.loadFromFile("assets/menu_coin.png");
+    coin.setTexture(coinTexture);
 
     //upgrades
     allUpgrades[0].texture.loadFromFile("assets/maxhealth_upgrade.png");
@@ -703,51 +829,17 @@ void loadTextures()
     allUpgrades[5].texture.loadFromFile("assets/speed_upgrade.png");
     allUpgrades[5].sprite.setTexture(allUpgrades[5].texture);
 }
-void playerAnimation()
-{
-    playerAnimationTimer += deltaTime;
-
-    if (isMoving)
-    {
-        if (playerAnimationTimer >= PLAYER_ANIMATION_RATE)
-        {
-            playerAnimationTimer = 0;
-            walkIndx = (walkIndx + 1) % 16;
-        }
-        // Display the current frame from the vertical sprite sheet.
-        player.setTexture(playerSheet);
-        player.setTextureRect(IntRect(0, walkIndx * 56, 40, 56));
-    }
-    else
-    {
-        // When idle, use a fixed frame (for example, the first frame)
-        player.setTexture(playerSheet);
-        player.setTextureRect(IntRect(0, 0, 40, 56));
-    }
-}
-void playeCollider()
-{
-
-    playerHitbox.setPosition(player.getPosition().x - 10, player.getPosition().y - 20);
-
-}
-void playerHitboxHandeling()
-{
-    playerHitbox.setFillColor(Color::Transparent);
-    //playerHitbox.setOutlineColor(Color::Red);
-    //playerHitbox.setOutlineThickness(2);
-}
 void BorderCollision()
 {
     // Get the background boundaries.
     FloatRect bgBounds = background.getGlobalBounds();
 
 
-    Vector2f pos = player.getPosition(); // Get player's current position.
+    Vector2f pos = player[character].sprite.getPosition(); // Get player's current position.
 
 
 
-    FloatRect playerBounds = player.getGlobalBounds();
+    FloatRect playerBounds = player[character].sprite.getGlobalBounds();
 
     // Calculate min and F allowed positions.
     float halfWidth = playerBounds.width / 2;
@@ -765,7 +857,7 @@ void BorderCollision()
     if (pos.y > maxY) pos.y = maxY;
 
     // Update the player's position.
-    player.setPosition(pos);
+    player[character].sprite.setPosition(pos);
 }
 void lockViewToBackground()
 {
@@ -777,7 +869,7 @@ void lockViewToBackground()
     float halfViewHeight = view.getSize().y / 2;
 
     // Start with the player's position
-    Vector2f desiredCenter = player.getPosition();
+    Vector2f desiredCenter = player[character].sprite.getPosition();
 
     // lock horizontally
     if (desiredCenter.x < bgBounds.left + halfViewWidth)
@@ -800,7 +892,7 @@ void whipAnimation()
     whipCooldownTimer += deltaTime;
 
     // Only animate if cooldown has passed
-    if (whipCooldownTimer < WHIP_COOLDOWN)
+    if (whipCooldownTimer < player[character].whipCooldown)
         return;
 
     // Animate whip
@@ -816,11 +908,11 @@ void whipAnimation()
         // Set position per frame
         if (whip.getScale() == Vector2f(-1, 1)) { // Right
             playPlayerHitSound();
-            whip.setPosition(player.getPosition().x + 250, player.getPosition().y - 50);
+            whip.setPosition(player[character].sprite.getPosition().x + 250, player[character].sprite.getPosition().y - 50);
         }
         else { // Left
             playPlayerHitSound();
-            whip.setPosition(player.getPosition().x - 250, player.getPosition().y - 50);
+            whip.setPosition(player[character].sprite.getPosition().x - 250, player[character].sprite.getPosition().y - 50);
         }
 
         // End of full swing animation
@@ -842,8 +934,8 @@ void whipAnimation()
                 swings = 0;
 
                 // Reset to player center
-                whip.setScale(player.getScale());
-                whip.setPosition(player.getPosition().x, player.getPosition().y);
+                whip.setScale(player[character].sprite.getScale());
+                whip.setPosition(player[character].sprite.getPosition().x, player[character].sprite.getPosition().y);
             }
         }
     }
@@ -851,15 +943,15 @@ void whipAnimation()
     // Extra cosmetic position when frame is 12
     if (whipIndx == 12)
     {
-        if (playerPos == 1) // Facing left
+        if (player[character].position == 1) // Facing left
         {
             whip.setScale(1, 1);
-            whip.setPosition(player.getPosition().x - 250, player.getPosition().y - 50);
+            whip.setPosition(player[character].sprite.getPosition().x - 250, player[character].sprite.getPosition().y - 50);
         }
         else // Facing right
         {
             whip.setScale(-1, 1);
-            whip.setPosition(player.getPosition().x + 250, player.getPosition().y - 50);
+            whip.setPosition(player[character].sprite.getPosition().x + 250, player[character].sprite.getPosition().y - 50);
         }
     }
 }
@@ -894,17 +986,17 @@ void healthBarHandling()
     }
 
     // Position health bar closer to player
-    Vector2f playerPos = player.getPosition();
-    healthBarBackground.setPosition(playerPos.x, playerPos.y + 30);
-    healthBarFill.setPosition(playerPos.x, playerPos.y + 30);
+    Vector2f playerPos = player[character].sprite.getPosition();
+    healthBarBackground.setPosition(playerPos.x, playerPos.y + 34);
+    healthBarFill.setPosition(playerPos.x, playerPos.y + 34);
 
     // Update health bar fill based on current health
-    float healthPercentage = currentHealth / maxHealth;
+    float healthPercentage = player[character].currentHealth / player[character].maxHealth;
     Vector2f newSize = healthBarFill.getSize();
     newSize.x = healthBarBackground.getSize().x * healthPercentage;
     healthBarFill.setSize(newSize);
 
-    if (currentHealth <= 0.05) {
+    if (player[character].currentHealth <= 0.05) {
         isDead = true;
         gameOverSound.play();
     }
@@ -913,18 +1005,18 @@ void healthBarHandling()
 void addXp(float xpToAdd)
 {
     // Add XP from orb collection
-    currentXP += xpToAdd;
-    if (currentXP > maxXP)
+    player[character].currentXP += xpToAdd;
+    if (player[character].currentXP > player[character].maxXP)
     {
-        currentXP = 0; // so that it never exceeds max
-        maxXP *= 2;
+        player[character].currentXP = 0; // so that it never exceeds max
+        player[character].maxXP *= 1.5;
         isUpgrading = true;
         isMenuOpen = true;
         levelCompleteSound.play();
     }
 
     // Update the fill size based on XP percentage
-    float xpPercentage = currentXP / maxXP;
+    float xpPercentage = player[character].currentXP / player[character].maxXP;
     Vector2f newSize = xpBarFill.getSize();
     newSize.x = xpBarTexture.getSize().x * xpPercentage;
     xpBarFill.setSize(newSize);
@@ -932,16 +1024,16 @@ void addXp(float xpToAdd)
 }//Yassin Amr
 void takeDamage(float damage)
 {
-    currentHealth -= damage;
+    player[character].currentHealth -= damage;
     playEnemyHitSound();
-    if (currentHealth < 0)
-        currentHealth = 0;
+    if (player[character].currentHealth < 0)
+        player[character].currentHealth = 0;
 }//Yassin Amr
 void heal(float amount)
 {
-    currentHealth += amount;
-    if (currentHealth > maxHealth)
-        currentHealth = maxHealth;
+    player[character].currentHealth += amount;
+    if (player[character].currentHealth > player[character].maxHealth)
+        player[character].currentHealth = player[character].maxHealth;
 }//Yassin Amr
 void mainmenuWidgets() {
     logo.setTexture(logoTexture);
@@ -968,6 +1060,15 @@ void mainmenuWidgets() {
     quitButton.sprite.setPosition(96, 54);
 
     menuBG[0].sprite.setTexture(menuBG[0].texture);
+
+    coinsText.setString(coinFormatHandler((coins)));
+    coinsText.setCharacterSize(100);
+    coinsText.setPosition(1660, 0);
+    coinsText.setFillColor(Color(205, 145, 43));
+    coinsText.setOutlineColor(Color::Black);
+    coinsText.setOutlineThickness(2);
+
+    coin.setPosition(1600, 35);
 }
 void bleedEffect()
 {
@@ -976,10 +1077,10 @@ void bleedEffect()
 
     if (timeSinceLastHit < recoveryTime)
     {
-        player.setColor(Color::Red);
+        player[character].sprite.setColor(Color::Red);
     }
     else {
-        player.setColor(Color::White);
+        player[character].sprite.setColor(Color::White);
     }
 }
 void logoAnimation()
@@ -1005,7 +1106,7 @@ void mainMenuButtons() {
         playButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
-            sleep(milliseconds(200)); // little delay before starting game for smooth transition
+            sleep(milliseconds(200));
             menu = 1;
             backgroundMusic.pause();
             //RESETING
@@ -1025,8 +1126,20 @@ void mainMenuButtons() {
         shopButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
-            sleep(milliseconds(200)); // little delay before starting game for smooth transition
-            menu = 1;
+            coinsText.setPosition(200, 50);
+            coin.setPosition(140, 85);
+            sleep(milliseconds(200));
+            shopPage = 0;
+
+            for (int i = 0; i < 8; i++) {
+                player[i].sprite.setScale(5, 5);
+                player[i].sprite.setPosition(570, 1080 / 2 + 50);
+                player[i].sprite.setColor(Color::White);
+            }
+
+            backtomenuButton.sprite.setPosition(1920 / 1.2 + 100, 1080 / 5 - 50);
+            backtomenuButton.sprite.setScale(1, 1);
+            menu = 2;
         }
     }
     else
@@ -1042,8 +1155,7 @@ void mainMenuButtons() {
         optionsButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
-            sleep(milliseconds(200)); // little delay before starting game for smooth transition
-            menu = 1;
+            sleep(milliseconds(200));
         }
     }
     else
@@ -1058,6 +1170,7 @@ void mainMenuButtons() {
         quitButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
         quitButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
+            clickSound.play();
             sleep(milliseconds(200)); // little delay before starting game for smooth transition
             window.close();
         }
@@ -1077,8 +1190,8 @@ Vector2f getDirectionToNearestZombie() {
     Vector2f nearestZombiePos;
 
     for (int i = 0; i < Zombies.size(); i++) {
-        float distance = sqrt(pow(Zombies[i].Shape.getPosition().x - player.getPosition().x, 2) +
-            pow(Zombies[i].Shape.getPosition().y - player.getPosition().y, 2));
+        float distance = sqrt(pow(Zombies[i].Shape.getPosition().x - player[character].sprite.getPosition().x, 2) +
+            pow(Zombies[i].Shape.getPosition().y - player[character].sprite.getPosition().y, 2));
         if (distance < minDistance) {
             minDistance = distance;
             nearestZombiePos = Zombies[i].Shape.getPosition();
@@ -1086,7 +1199,7 @@ Vector2f getDirectionToNearestZombie() {
     }
 
     // Calculate direction to nearest zombie
-    Vector2f direction = nearestZombiePos - player.getPosition();
+    Vector2f direction = nearestZombiePos - player[character].sprite.getPosition();
     return Normalize(direction);  // Use the existing Normalize function
 }
 void createProjectile()
@@ -1096,7 +1209,7 @@ void createProjectile()
         projectileTimer = 0;  // Reset timer
         projectile.sprite.setTexture(projectileTexture);
         projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
-        projectile.sprite.setPosition(player.getPosition());
+        projectile.sprite.setPosition(player[character].sprite.getPosition());
         projectile.active = true;
 
         // Get direction to nearest zombie
@@ -1118,7 +1231,7 @@ void updateProjectile()
             if (projectile.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds()))
             {
                 projectile.active = false;
-                zombie.HP -= ProjectileDamage; //Damage logic for zombie
+                zombie.HP -= player[character].ProjectileDamage; //Damage logic for zombie              
                 break;  // Exit loop once we hit a zombie
             }
         }
@@ -1135,33 +1248,33 @@ void updateProjectile()
 Enemies selectSpwanZombie() {
     Enemies newZombie;
     int diffrence = 100;
-    int newKilled = zombiesKilled % (diffrence * numOfZombieTypes);
+    int selectKills = zombiesKilled % (diffrence * numOfZombieTypes);
 
-    if (newKilled <= diffrence * 1) {
+    if (selectKills <= diffrence * 1) {
         newZombie = ZombieTypes[0];
     }
-    else if (newKilled <= diffrence * 2) {
+    else if (selectKills <= diffrence * 2) {
         newZombie = ZombieTypes[1];
     }
-    else if (newKilled <= diffrence * 3) {
+    else if (selectKills <= diffrence * 3) {
         newZombie = ZombieTypes[2];
     }
-    else if (newKilled <= diffrence * 4) {
+    else if (selectKills <= diffrence * 4) {
         newZombie = ZombieTypes[3];
     }
-    else if (newKilled <= diffrence * 5) {
+    else if (selectKills <= diffrence * 5) {
         newZombie = ZombieTypes[4];
     }
-    else if (newKilled <= diffrence * 6) {
+    else if (selectKills <= diffrence * 6) {
         newZombie = ZombieTypes[5];
     }
-    else if (newKilled <= diffrence * 7) {
+    else if (selectKills <= diffrence * 7) {
         newZombie = ZombieTypes[6];
     }
-    else if (newKilled <= diffrence * 8) {
+    else if (selectKills <= diffrence * 8) {
         newZombie = ZombieTypes[7];
     }
-    else if (newKilled <= diffrence * 9) {
+    else if (selectKills <= diffrence * 9) {
         newZombie = ZombieTypes[8];
     }
     else {
@@ -1198,9 +1311,29 @@ Vector2f Normalize(Vector2f vector) {
 void ZombieHandler() {
     for (int i = 0; i < Zombies.size(); i++) {
         if (Zombies[i].isDead) {
-            createXPOrb(Zombies[i].Shape.getPosition());
+            // Assign XP based on zombie type
+            float xpValue = 0.0f;
+            switch (Zombies[i].type) {
+            case 0: xpValue = 1.0f; break;
+            case 1: xpValue = 1.5f; break;
+            case 2: xpValue = 1.5f; break;
+            case 3: xpValue = 2.0f; break;
+            case 4: xpValue = 2.0f; break;
+            case 5: xpValue = 2.5f; break;
+            case 6: xpValue = 3.0f; break;
+            case 7: xpValue = 2.0f; break;
+            case 8: xpValue = 3.0f; break;
+            case 9: xpValue = 5.0f; break;
+            }
+
+            // Create XP orb with the assigned XP value
+            createXPOrb(Zombies[i].Shape.getPosition(), xpValue);
+
+            // Handle coins and remove the zombie
             int coinChance = rand() % 3;
             coins += coinChance;
+
+
             Zombies.erase(Zombies.begin() + i);
             zombiesKilled++;
             continue;
@@ -1209,7 +1342,7 @@ void ZombieHandler() {
         // Update zombie's hit cooldown for whip
         if (!Zombies[i].canBeHit) {
             Zombies[i].lastHitTime += deltaTime;
-            if (Zombies[i].lastHitTime >= WHIP_COOLDOWN) {
+            if (Zombies[i].lastHitTime >= player[character].whipCooldown) {
                 Zombies[i].canBeHit = true;
             }
         }
@@ -1224,11 +1357,12 @@ void separateZombies() {
             Vector2f pos1 = Zombies[i].HitBox.getPosition();
             Vector2f pos2 = Zombies[j].HitBox.getPosition();
 
-            Vector2f diff = pos1 - pos2;
-            float dist = sqrt(diff.x * diff.x + diff.y * diff.y);
+            Vector2f diff = pos1 - pos2; //line pointing from zombie 1 to zombie 2
+            float dist = sqrt(diff.x * diff.x + diff.y * diff.y);  // distance between the zombies
 
             if (dist < minDistance && dist > 0.0f) {
-                Vector2f offset = diff / dist * (minDistance - dist) / 2.0f;
+                Vector2f offset = Normalize(diff); // normalize diff
+                offset = offset * (minDistance - dist) / 2.0f; // calc distance each should move
                 Zombies[i].Shape.move(offset);
                 Zombies[j].Shape.move(-offset);
             }
@@ -1242,6 +1376,7 @@ void pauseButtonHandler() {
         pauseButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
         pauseButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left) && isPaused == 0) {
+            clickSound.play();
             logo.setPosition(1920 / 2.8, 1080 / 2);
             logo.setScale(0.5, 0.5);
             isPaused = 1;
@@ -1267,11 +1402,12 @@ void pauseButtonHandler() {
     }
 }
 void pauseMenu() {
-    if (backButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    if (backtogameButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
-        backButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
-        backButton.sprite.setColor(sf::Color(200, 200, 200));
+        backtogameButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
+        backtogameButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
+            clickSound.play();
             isPaused = 0;
 
             Time pausedDuration = timerClock.getElapsedTime() - pauseStart;
@@ -1280,8 +1416,8 @@ void pauseMenu() {
     }
     else
     {
-        backButton.sprite.setTextureRect(IntRect(0, 0, 330, 108));
-        backButton.sprite.setColor(Color::White);
+        backtogameButton.sprite.setTextureRect(IntRect(0, 0, 330, 108));
+        backtogameButton.sprite.setColor(Color::White);
     }
 }
 void backtomenuButtonHandler() {
@@ -1290,6 +1426,9 @@ void backtomenuButtonHandler() {
         backtomenuButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
         backtomenuButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
+            clickSound.play();
+            coinsText.setPosition(1660, 0);
+            coin.setPosition(1600, 35);
             menu = 0;
             backgroundMusic.play();
             logo.setPosition(1920 / 4, 1080 / 2);
@@ -1500,33 +1639,33 @@ string timerFormatHandler(int time) {
     return formattedTime;
 }
 void resetGame() {
-    currentXP = 0.0f;
+    charachterInitalization();
+    player[character].Start();
+    player[character].currentXP = 0.0f;
+    player[character].currentHealth = player[character].maxHealth;
+    player[character].isMoving = false;
+    player[character].position = true; // true = left  | false  = right
+    player[character].canAttack = true;
+    player[character].level = 1;
+    player[character].maxXP = 10;
     Zombies.clear();
     xpOrbs.clear();
-    maxHealth = 100.0f;
-    currentHealth = maxHealth;
     projectile.active = false;
     isDead = false;
     isPaused = false;
     zombiesKilled = 0;
     healingUpgradeLevel = 0;
     isUpgrading = false;
-    isMoving = false;
-    playerPos = true; // true = left  | false  = right
     walkIndx = 0;
     whipIndx = 0;
     whipCooldownTimer = 0;
-    canAttack = true;
     timeSinceLastHit = 999;
-    playerLevel = 1;
     swings = 0;
     whipLvl = 1;
     upgradeLevel.healingUpgradeLevel = 0;
-    isProjectileUnlocked = false;
     timerClock.restart();
     totalPausedTime = Time::Zero;
     whip.setPosition(5000, 5000);
-    player.setScale(1, 1);
     backtomenuButton.sprite.setPosition(1920 / 1.65, 1080 / 1.5);
     backtomenuButton.sprite.setScale(1.5, 1.5);
 
@@ -1543,15 +1682,16 @@ void resetGame() {
     timerText.setOutlineThickness(2);
 
     coinsText.setCharacterSize(100);
-    coinsText.setPosition(1660, 100);
+    coinsText.setPosition(1660, 900);
     coinsText.setFillColor(Color(205, 145, 43));
     coinsText.setOutlineColor(Color::Black);
     coinsText.setOutlineThickness(2);
+    coin.setPosition(1600, 935);
 
     xpBarFill.setSize(Vector2f(0, 15));
 
-    player.setPosition(background.getGlobalBounds().width / 2, background.getGlobalBounds().height / 2);
-
+    player[character].sprite.setPosition(background.getGlobalBounds().width / 2, background.getGlobalBounds().height / 2);
+    player[character].sprite.setScale(1, 1);
 }
 void whipDmg()
 {
@@ -1565,7 +1705,7 @@ void whipDmg()
             {
                 // Apply damage
                 zombie.Shape.setColor(Color::Red);
-                zombie.HP -= whipDamage;
+                zombie.HP -= player[character].whipDamage;
                 zombie.canBeHit = false;  // Mark zombie as hit
                 zombie.lastHitTime = 0.0f;  // Reset hit timer
                 break;  // Exit loop after hitting one zombie
@@ -1578,24 +1718,46 @@ void whipDmg()
         }
     }
 }
-void createXPOrb(Vector2f position)
-{
+void createXPOrb(Vector2f position, float xpValue) {
     XPOrb newOrb;
     newOrb.sprite.setTexture(xpOrbTexture);
     newOrb.sprite.setOrigin(newOrb.sprite.getLocalBounds().width / 2, newOrb.sprite.getLocalBounds().height / 2);
     newOrb.sprite.setPosition(position);
+    newOrb.xpValue = xpValue;
+
+    if (xpValue == 1.0f) {
+        newOrb.sprite.setScale(0.5f, 0.5f);
+        newOrb.sprite.setColor(Color::Cyan);
+    }
+    else if (xpValue == 1.5f) {
+        newOrb.sprite.setScale(0.7f, 0.7f);
+        newOrb.sprite.setColor(Color::Yellow);
+    }
+    else if (xpValue == 2.0f) {
+        newOrb.sprite.setScale(1.0f, 1.0f);
+        newOrb.sprite.setColor(Color(255, 165, 0));
+    }
+    else if (xpValue == 2.5f) {
+        newOrb.sprite.setScale(1.1f, 1.1f);
+        newOrb.sprite.setColor(Color(255, 69, 0));
+    }
+    else if (xpValue == 3.0f) {
+        newOrb.sprite.setScale(1.3f, 1.3f);
+        newOrb.sprite.setColor(Color::Red);
+    }
+    else if (xpValue == 5.0f) {
+        newOrb.sprite.setScale(1.5f, 1.5f);
+        newOrb.sprite.setColor(Color(128, 0, 128));
+    }
+
     xpOrbs.push_back(newOrb);
 }
-void updateXPOrbs()
-{
+void updateXPOrbs() {
     for (int i = 0; i < xpOrbs.size(); i++) {
-
-
-        if (xpOrbs[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds())) {
-            addXp(1.0f);
+        if (xpOrbs[i].sprite.getGlobalBounds().intersects(player[character].sprite.getGlobalBounds())) {
+            addXp(xpOrbs[i].xpValue); // Add the XP value of the orb
             xpOrbs.erase(xpOrbs.begin() + i);
         }
-
     }
 }
 void gameoverWidgets() {
@@ -1623,11 +1785,6 @@ void gameoverMenuHandler() {
     for (int i = 0; i < 4; i++) {
         window.draw(gameoverText[i]);
     }
-
-    backtomenuButton.sprite.setPosition(1920 / 2, 900);
-    scoreText.setPosition(1920 / 1.2 - 270, 1080 / 4 + 200);
-    timerText.setPosition(1920 / 1.2 - 270, 1080 / 4 + 350);
-    coinsText.setPosition(1920 / 1.2 - 270, 1080 / 4 + 200);
 
 }
 string coinFormatHandler(int coins) {
@@ -1665,6 +1822,7 @@ void powerUps()
             // Check if the user clicked the left mouse button
             if (Mouse::isButtonPressed(Mouse::Left))
             {
+                clickSound.play();
                 switch (i)
                 {
                 case 0:
@@ -1693,7 +1851,7 @@ void powerUps()
 
                 case 4:
                     // Upgrade 4: Unlock second weapon (projectile)
-                    isProjectileUnlocked = true;
+                    player[character].isProjectileUnlocked = true;
                     break;
 
                 case 5:
@@ -1750,14 +1908,14 @@ void upgradeItemsHandeling()
 }
 void maxHealthIncrease(int addValue, int limit)
 {
-    if (maxHealth < limit)
+    if (player[character].maxHealth < limit)
     {
-        maxHealth += addValue;
+        player[character].maxHealth += addValue;
     }
 }
 void increasePlayerSpeed(int value)
 {
-    playerSpeed += value;
+    player[character].speed += value;
 }
 void upgradesMenuText()
 {
@@ -1801,7 +1959,182 @@ void upgradesTextHandeling()
     allUpgrades[5].text.setPosition(allUpgrades[5].sprite.getPosition().x - 210, allUpgrades[5].sprite.getPosition().y + 270);
     allUpgrades[5].text.setCharacterSize(85);
 }
+void charachterInitalization()
+{
 
+    //Default 0 /player
+
+    player[0].texture.loadFromFile("assets/player_sheet.png");
+    player[0].sprite.setTexture(player[0].texture);
+    player[0].isProjectileUnlocked = false;
+    player[0].isWhipUnlocked = true;
+    player[0].maxHealth = 100;
+    player[0].isUnlocked = true;
+
+    //Charachter 1/Adam
+
+    player[1].texture.loadFromFile("assets/adam_sheet.png");
+    player[1].sprite.setTexture(player[1].texture);
+    player[1].playerWidth = 50;
+    player[1].playeFrameIndx = 15;
+    player[1].maxHealth = 500;
+    player[1].ProjectileDamage = 15;
+    player[1].speed = 170;
+    player[1].isProjectileUnlocked = true;
+    player[1].isWhipUnlocked = false;
+
+
+
+    //Charachter 2 /Aly
+
+    player[2].texture.loadFromFile("assets/aly_sheet.png");
+    player[2].sprite.setTexture(player[2].texture);
+    player[2].speed = 230;
+    player[2].playeFrameIndx = 15;
+    player[2].isProjectileUnlocked = false;
+    player[2].isWhipUnlocked = true;
+    player[2].maxHealth = 100;
+
+    //Charchter 3 / Amr
+
+    player[3].texture.loadFromFile("assets/amr_sheet.png");
+    player[3].sprite.setTexture(player[3].texture);
+    player[3].playerHeight = 64;
+    player[3].playeFrameIndx = 15;
+    player[3].whipDamage = 20;
+    player[3].whipCooldown = 0.5f;
+    player[2].isProjectileUnlocked = false;
+    player[2].isWhipUnlocked = true;
+    player[2].maxHealth = 100;
+
+    //Charchter 4 / Logy
+
+    player[4].texture.loadFromFile("assets/logy_sheet.png");
+    player[4].sprite.setTexture(player[4].texture);
+    player[4].playerHeight = 58;
+    player[4].playeFrameIndx = 13;
+    player[4].maxHealth = 100;
+
+    //Charchter 5 / Maritsia
+
+    player[5].texture.loadFromFile("assets/maritsia_sheet.png");
+    player[5].sprite.setTexture(player[5].texture);
+    player[5].playerHeight = 56;
+    player[5].playeFrameIndx = 13;
+    player[5].maxHealth = 100;
+
+    //Charchter 6 / Yassin
+
+    player[6].texture.loadFromFile("assets/yassin_sheet.png");
+    player[6].sprite.setTexture(player[6].texture);
+    player[6].playerHeight = 60;
+    player[6].playerWidth = 32;
+    player[6].playeFrameIndx = 15;
+    player[6].maxHealth = 50;
+    player[6].speed = 300;
+    player[6].isProjectileUnlocked = false;
+    player[6].isWhipUnlocked = true;
+
+    //Charchter 7 // Marwan
+
+    player[7].texture.loadFromFile("assets/marwan_sheet.png");
+    player[7].sprite.setTexture(player[7].texture);
+    player[7].playeFrameIndx = 15;
+    player[7].isProjectileUnlocked = true;
+    player[7].isWhipUnlocked = false;
+    player[7].maxHealth = 100;
+
+}
+void shopWidgets()
+{
+    backButton.sprite.setPosition(60, 1080 / 2);
+    nextButton.sprite.setPosition(1750, 1080 / 2);
+    buyButton.sprite.setPosition(1250, 830);
+    selectButton.sprite.setPosition(1250, 830);
+}
+void backButtonHandler()
+{
+    if (backButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        backButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+        backButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left) && shopPage > 0) {
+            clickSound.play();
+            shopPage--;
+
+            sleep(milliseconds(200));
+        }
+    }
+    else
+    {
+        backButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+        backButton.sprite.setColor(Color::White);
+    }
+}
+void nextButtonHandler()
+{
+    if (nextButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        nextButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+        nextButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left) && shopPage < 7) {
+            clickSound.play();
+            shopPage++;
+            sleep(milliseconds(200));
+        }
+    }
+    else
+    {
+        nextButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+        nextButton.sprite.setColor(Color::White);
+    }
+}
+void buyButtonHandler()
+{
+    if (coins >= 500 && !player[shopPage].isUnlocked) {
+        if (buyButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+        {
+            buyButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+            buyButton.sprite.setColor(sf::Color(200, 200, 200));
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                coinSound.play();
+                coins -= 500;
+                player[shopPage].isUnlocked = true;
+                sleep(milliseconds(200));
+            }
+        }
+        else
+        {
+            buyButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+            buyButton.sprite.setColor(Color::White);
+        }
+    }
+    else {
+        buyButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+        buyButton.sprite.setColor(Color(73, 73, 73));
+    }
+
+}
+void selectButtonHandler()
+{
+    if (player[shopPage].isUnlocked) {
+        if (selectButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+        {
+            selectButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+            selectButton.sprite.setColor(sf::Color(200, 200, 200));
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                clickSound.play();
+                character = shopPage;
+                sleep(milliseconds(200));
+            }
+        }
+        else
+        {
+            selectButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+            selectButton.sprite.setColor(Color::White);
+        }
+    }
+}
 void loadSounds()
 {
     clickBuffer.loadFromFile("assets/sounds/click.mp3");
