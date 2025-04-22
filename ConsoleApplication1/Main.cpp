@@ -53,6 +53,7 @@ int zombiesKilled;
 
 int bgIndx = 0;
 int coins = 500;
+int gameMode = 0;
 
 sf::RenderWindow window(sf::VideoMode(1920, 1080), "Survival@Uni-Verse", Style::Fullscreen);
 Font font;
@@ -153,7 +154,7 @@ void whipCollider();                        // Amr
 void whipHitboxHandeling();                 // Amr
 void whipDmg();                             // Amr
 string coinFormatHandler(int coins);        // Amr
-void ZombieHandler();                       // Adam & Yassin &Amr
+void ZombieHandler();                       // Adam & Yassin & Amr
 void SpwaningZombies();                     // Adam
 void separateZombies();                     // Adam
 Vector2f Normalize(Vector2f vector);        // Adam
@@ -170,6 +171,11 @@ void updateProjectile();                    // Yassin
 void createXPOrb(Vector2f position, float xpValue);//Yassin
 void updateXPOrbs();                        // Yassin 
 Vector2f getDirectionToNearestZombie();     // Yassin
+void updateRing();                          //Yassin
+void ringInitialization();                  //Yassin
+void ringAnimation(float deltaTime);        //Yassin
+void ringRotation(float deltaTime, const Vector2f& playerPos);//Yassin
+void ringCollision();                       //Yassin
 void powerUps();                            // Marwan
 void healingUpgrade();                      // Marwan
 void drawPowerUpsMenu();                    // Marwan
@@ -187,6 +193,19 @@ void playEnemyHitSound();                   // Maritsia
 void playPlayerHitSound();                  // Maritsia
 
 //structs
+
+struct RingWeapon {
+    Sprite sprite;
+    float radius = 150.0f;
+    float angle = 0.0f;
+    float rotationSpeed = 300.0f;
+    float animationTimer = 0.0f;
+    int frameIndex = 0;
+    bool isActive = false;
+};
+
+RingWeapon ring;
+Texture ringTexture;
 
 struct UpgradesItem
 {
@@ -275,6 +294,7 @@ struct Character {
     bool isProjectileUnlocked = false;
     bool isWhipUnlocked = true;
     bool isUnlocked = false;
+    bool isRingUnlocked = false;
 
     // Health system
     float maxHealth = 100.0f;
@@ -522,7 +542,8 @@ void Start()
     loadSounds();
 
     playBackgroundMusic();
-
+    //initialize the ring
+    ringInitialization();
     // Initialize health bar
     healthBarBackground.setFillColor(Color::Black);
     healthBarFill.setFillColor(Color::Red);
@@ -590,7 +611,6 @@ void Update()
         //UI
 
 
-
         if (isDead) {
             backtomenuButton.sprite.setPosition(1920 / 2, 900);
             scoreText.setPosition(1920 / 1.2 - 270, 1080 / 4 + 200);
@@ -611,6 +631,11 @@ void Update()
             backtomenuButtonHandler();
             return;
         }
+
+        /* if (ring.isActive) {
+             window.draw(ring.sprite);
+         }*/
+        updateRing();
 
         pauseButtonHandler();
 
@@ -693,6 +718,9 @@ void Draw()
         if (whipIndx != 12) {
             window.draw(whip);
             window.draw(whipHitbox);
+        }
+        if (player[character].isRingUnlocked) {
+            window.draw(ring.sprite);
         }
 
         //Draw Zombies
@@ -817,6 +845,8 @@ void loadTextures()
     xpOrbTexture.loadFromFile("assets/xpOrb.png");
     coinTexture.loadFromFile("assets/menu_coin.png");
     coin.setTexture(coinTexture);
+    ringTexture.loadFromFile("assets/Rings.png");
+
 
     //upgrades
     allUpgrades[0].texture.loadFromFile("assets/maxhealth_upgrade.png");
@@ -831,6 +861,7 @@ void loadTextures()
     allUpgrades[4].sprite.setTexture(allUpgrades[4].texture);
     allUpgrades[5].texture.loadFromFile("assets/speed_upgrade.png");
     allUpgrades[5].sprite.setTexture(allUpgrades[5].texture);
+
 }
 void BorderCollision()
 {
@@ -1234,7 +1265,15 @@ void updateProjectile()
             if (projectile.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds()))
             {
                 projectile.active = false;
-                zombie.HP -= player[character].ProjectileDamage; //Damage logic for zombie              
+
+                // Apply damage
+                zombie.HP -= player[character].ProjectileDamage;
+
+                // Apply bleed effect
+                zombie.Shape.setColor(Color::Red);
+                zombie.canBeHit = false;  // Mark zombie as hit
+                zombie.lastHitTime = 0.0f;  // Reset hit timer
+
                 break;  // Exit loop once we hit a zombie
             }
         }
@@ -1245,6 +1284,13 @@ void updateProjectile()
             pos.y < 0 || pos.y > background.getGlobalBounds().height || projectileTimer >= projectileDespawnTime)
         {
             projectile.active = false;
+        }
+    }
+
+    // Reset zombie color after bleed effect duration
+    for (auto& zombie : Zombies) {
+        if (zombie.lastHitTime > 0.15f) {  // 0.15 seconds bleed effect duration
+            zombie.Shape.setColor(Color::White);
         }
     }
 }
@@ -1445,154 +1491,261 @@ void backtomenuButtonHandler() {
     }
 }
 void zombieInitalization() {
+
+    //set assets
+    if (gameMode == 0) {
+        //Enemy 1/Normal Zombie
+        zombieTextureSheets[0].loadFromFile("assets/Zombie1.png");
+        ZombieTypes[0].hitboxWidth = 35;
+        ZombieTypes[0].hitboxHeight = 48;
+        ZombieTypes[0].spriteWidth = 35;
+        ZombieTypes[0].spriteHeight = 48;
+        ZombieTypes[0].colSize = 3;
+
+        //Enemy 2/Ice Zombie
+        zombieTextureSheets[1].loadFromFile("assets/Zombie2.png");
+        ZombieTypes[1].hitboxWidth = 35;
+        ZombieTypes[1].hitboxHeight = 48;
+        ZombieTypes[1].spriteWidth = 35;
+        ZombieTypes[1].spriteHeight = 48;
+        ZombieTypes[1].colSize = 3;
+
+        //Enemy 3
+        zombieTextureSheets[2].loadFromFile("assets/Zombie3.png");
+        ZombieTypes[2].hitboxWidth = 35;
+        ZombieTypes[2].hitboxHeight = 48;
+        ZombieTypes[2].spriteWidth = 35;
+        ZombieTypes[2].spriteHeight = 48;
+        ZombieTypes[2].colSize = 3;
+
+        //Enemy 4
+        zombieTextureSheets[3].loadFromFile("assets/Zombie4.png");
+        ZombieTypes[3].hitboxWidth = 35;
+        ZombieTypes[3].hitboxHeight = 48;
+        ZombieTypes[3].spriteWidth = 35;
+        ZombieTypes[3].spriteHeight = 48;
+        ZombieTypes[3].colSize = 3;
+
+        //Enemy 5
+        zombieTextureSheets[4].loadFromFile("assets/Zombie5.png");
+        ZombieTypes[4].hitboxWidth = 35;
+        ZombieTypes[4].hitboxHeight = 48;
+        ZombieTypes[4].spriteWidth = 35;
+        ZombieTypes[4].spriteHeight = 48;
+        ZombieTypes[4].colSize = 3;
+
+        //Enemy 6
+        zombieTextureSheets[5].loadFromFile("assets/Zombie6.png");
+        ZombieTypes[5].hitboxWidth = 35;
+        ZombieTypes[5].hitboxHeight = 43;
+        ZombieTypes[5].spriteWidth = 35;
+        ZombieTypes[5].spriteHeight = 43;
+        ZombieTypes[5].colSize = 3;
+
+        //Enemy 7
+        zombieTextureSheets[6].loadFromFile("assets/Zombie7.png");
+        ZombieTypes[6].hitboxWidth = 35;
+        ZombieTypes[6].hitboxHeight = 48;
+        ZombieTypes[6].spriteWidth = 35;
+        ZombieTypes[6].spriteHeight = 48;
+        ZombieTypes[6].colSize = 3;
+
+        //Enemy 8
+        zombieTextureSheets[7].loadFromFile("assets/Zombie8.png");
+        ZombieTypes[7].hitboxWidth = 35;
+        ZombieTypes[7].hitboxHeight = 41;
+        ZombieTypes[7].spriteWidth = 35;
+        ZombieTypes[7].spriteHeight = 41;
+        ZombieTypes[7].colSize = 3;
+
+        //Enemy 9
+        zombieTextureSheets[8].loadFromFile("assets/Zombie9.png");
+        ZombieTypes[8].hitboxWidth = 35;
+        ZombieTypes[8].hitboxHeight = 48;
+        ZombieTypes[8].spriteWidth = 35;
+        ZombieTypes[8].spriteHeight = 48;
+        ZombieTypes[8].colSize = 3;
+
+        //Enemy 10
+        zombieTextureSheets[9].loadFromFile("assets/Zombie10.png");
+        ZombieTypes[9].hitboxWidth = 35;
+        ZombieTypes[9].hitboxHeight = 48;
+        ZombieTypes[9].spriteWidth = 35;
+        ZombieTypes[9].spriteHeight = 48;
+        ZombieTypes[9].colSize = 3;
+
+    }
+    else if (gameMode == 1) {
+        //Enemy 1/Normal Zombie
+        zombieTextureSheets[0].loadFromFile("assets/Zombie1horror.png");
+        ZombieTypes[0].hitboxWidth = 40;
+        ZombieTypes[0].hitboxHeight = 44;
+        ZombieTypes[0].spriteWidth = 40;
+        ZombieTypes[0].spriteHeight = 44;
+        ZombieTypes[0].colSize = 7;
+
+        //Enemy 2/Ice Zombie
+        zombieTextureSheets[1].loadFromFile("assets/Zombie2horror.png");
+        ZombieTypes[1].hitboxWidth = 30;
+        ZombieTypes[1].hitboxHeight = 40;
+        ZombieTypes[1].spriteWidth = 30;
+        ZombieTypes[1].spriteHeight = 40;
+        ZombieTypes[1].colSize = 7;
+
+        //Enemy 3
+        zombieTextureSheets[2].loadFromFile("assets/Zombie3horror.png");
+        ZombieTypes[2].hitboxWidth = 40;
+        ZombieTypes[2].hitboxHeight = 44;
+        ZombieTypes[2].spriteWidth = 40;
+        ZombieTypes[2].spriteHeight = 44;
+        ZombieTypes[2].colSize = 5;
+
+        //Enemy 4
+        zombieTextureSheets[3].loadFromFile("assets/Zombie4horror.png");
+        ZombieTypes[3].hitboxWidth = 34;
+        ZombieTypes[3].hitboxHeight = 46;
+        ZombieTypes[3].spriteWidth = 34;
+        ZombieTypes[3].spriteHeight = 46;
+        ZombieTypes[3].colSize = 12;
+
+        //Enemy 5
+        zombieTextureSheets[4].loadFromFile("assets/Zombie5horror.png");
+        ZombieTypes[4].hitboxWidth = 34;
+        ZombieTypes[4].hitboxHeight = 50;
+        ZombieTypes[4].spriteWidth = 34;
+        ZombieTypes[4].spriteHeight = 50;
+        ZombieTypes[4].colSize = 3;
+
+        //Enemy 6
+        zombieTextureSheets[5].loadFromFile("assets/Zombie6horror.png");
+        ZombieTypes[5].hitboxWidth = 34;
+        ZombieTypes[5].hitboxHeight = 52;
+        ZombieTypes[5].spriteWidth = 34;
+        ZombieTypes[5].spriteHeight = 52;
+        ZombieTypes[5].colSize = 3;
+
+        //Enemy 7
+        zombieTextureSheets[6].loadFromFile("assets/Zombie7horror.png");
+        ZombieTypes[6].hitboxWidth = 44;
+        ZombieTypes[6].hitboxHeight = 46;
+        ZombieTypes[6].spriteWidth = 44;
+        ZombieTypes[6].spriteHeight = 46;
+        ZombieTypes[6].colSize = 14;
+
+        //Enemy 8
+        zombieTextureSheets[7].loadFromFile("assets/Zombie8horror.png");
+        ZombieTypes[7].hitboxWidth = 23;
+        ZombieTypes[7].hitboxHeight = 36;
+        ZombieTypes[7].spriteWidth = 46;
+        ZombieTypes[7].spriteHeight = 40;
+        ZombieTypes[7].colSize = 3;
+
+        //Enemy 9
+        zombieTextureSheets[8].loadFromFile("assets/Zombie9horror.png");
+        ZombieTypes[8].hitboxWidth = 36;
+        ZombieTypes[8].hitboxHeight = 50;
+        ZombieTypes[8].spriteWidth = 36;
+        ZombieTypes[8].spriteHeight = 50;
+        ZombieTypes[8].colSize = 13;
+
+        //Enemy 10
+        zombieTextureSheets[9].loadFromFile("assets/Zombie10horror.png");
+        ZombieTypes[9].hitboxWidth = 30;
+        ZombieTypes[9].hitboxHeight = 48;
+        ZombieTypes[9].spriteWidth = 30;
+        ZombieTypes[9].spriteHeight = 48;
+        ZombieTypes[9].colSize = 13;
+    }
+
+    //set stats
     //Enemy 1/Normal Zombie
 
-    zombieTextureSheets[0].loadFromFile("assets/Zombie1.png");
     ZombieTypes[0].type = 0;
-    ZombieTypes[0].hitboxWidth = 35;
-    ZombieTypes[0].hitboxHeight = 48;
-    ZombieTypes[0].spriteWidth = 35;
-    ZombieTypes[0].spriteHeight = 48;
     ZombieTypes[0].DMG = 2;
     ZombieTypes[0].HP = 10;
     ZombieTypes[0].speed = 160;
     ZombieTypes[0].attackRate = 0.25;
-    ZombieTypes[0].colSize = 3;
     ZombieTypes[0].AnimtaionRate = 0.135f;
 
     //Enemy 2/Ice Zombie
 
-    zombieTextureSheets[1].loadFromFile("assets/Zombie2.png");
     ZombieTypes[1].type = 1;
-    ZombieTypes[1].hitboxWidth = 35;
-    ZombieTypes[1].hitboxHeight = 48;
-    ZombieTypes[1].spriteWidth = 35;
-    ZombieTypes[1].spriteHeight = 48;
     ZombieTypes[1].DMG = 5;
     ZombieTypes[1].HP = 30;
     ZombieTypes[1].speed = 140;
     ZombieTypes[1].attackRate = 0.25;
-    ZombieTypes[1].colSize = 3;
     ZombieTypes[1].AnimtaionRate = 0.135f;
 
     //Enemy 3
 
-    zombieTextureSheets[2].loadFromFile("assets/Zombie3.png");
     ZombieTypes[2].type = 2;
-    ZombieTypes[2].hitboxWidth = 35;
-    ZombieTypes[2].hitboxHeight = 48;
-    ZombieTypes[2].spriteWidth = 35;
-    ZombieTypes[2].spriteHeight = 48;
     ZombieTypes[2].DMG = 3;
     ZombieTypes[2].HP = 10;
     ZombieTypes[2].speed = 170;
     ZombieTypes[2].attackRate = 0.25;
-    ZombieTypes[2].colSize = 3;
     ZombieTypes[2].AnimtaionRate = 0.135f;
 
     //Enemy 4
 
-    zombieTextureSheets[3].loadFromFile("assets/Zombie4.png");
     ZombieTypes[3].type = 3;
-    ZombieTypes[3].hitboxWidth = 35;
-    ZombieTypes[3].hitboxHeight = 48;
-    ZombieTypes[3].spriteWidth = 35;
-    ZombieTypes[3].spriteHeight = 48;
     ZombieTypes[3].DMG = 10;
     ZombieTypes[3].HP = 30;
     ZombieTypes[3].speed = 160;
     ZombieTypes[3].attackRate = 0.25;
-    ZombieTypes[3].colSize = 3;
     ZombieTypes[3].AnimtaionRate = 0.135f;
 
     //Enemy 5
 
-    zombieTextureSheets[4].loadFromFile("assets/Zombie5.png");
     ZombieTypes[4].type = 4;
-    ZombieTypes[4].hitboxWidth = 35;
-    ZombieTypes[4].hitboxHeight = 48;
-    ZombieTypes[4].spriteWidth = 35;
-    ZombieTypes[4].spriteHeight = 48;
     ZombieTypes[4].DMG = 1;
     ZombieTypes[4].HP = 50;
     ZombieTypes[4].speed = 210;
     ZombieTypes[4].attackRate = 0.25;
-    ZombieTypes[4].colSize = 3;
     ZombieTypes[4].AnimtaionRate = 0.135f;
 
     //Enemy 6
 
-    zombieTextureSheets[5].loadFromFile("assets/Zombie6.png");
     ZombieTypes[5].type = 5;
-    ZombieTypes[5].hitboxWidth = 35;
-    ZombieTypes[5].hitboxHeight = 43;
-    ZombieTypes[5].spriteWidth = 35;
-    ZombieTypes[5].spriteHeight = 43;
     ZombieTypes[5].DMG = 10;
     ZombieTypes[5].HP = 20;
     ZombieTypes[5].speed = 150;
     ZombieTypes[5].attackRate = 0.25;
-    ZombieTypes[5].colSize = 3;
     ZombieTypes[5].AnimtaionRate = 0.135f;
 
     //Enemy 7
 
-    zombieTextureSheets[6].loadFromFile("assets/Zombie7.png");
     ZombieTypes[6].type = 6;
-    ZombieTypes[6].hitboxWidth = 35;
-    ZombieTypes[6].hitboxHeight = 48;
-    ZombieTypes[6].spriteWidth = 35;
-    ZombieTypes[6].spriteHeight = 48;
     ZombieTypes[6].DMG = 5;
     ZombieTypes[6].HP = 70;
     ZombieTypes[6].speed = 150;
     ZombieTypes[6].attackRate = 0.25;
-    ZombieTypes[6].colSize = 3;
     ZombieTypes[6].AnimtaionRate = 0.135f;
 
     //Enemy 8
 
-    zombieTextureSheets[7].loadFromFile("assets/Zombie8.png");
     ZombieTypes[7].type = 7;
-    ZombieTypes[7].hitboxWidth = 35;
-    ZombieTypes[7].hitboxHeight = 41;
-    ZombieTypes[7].spriteWidth = 35;
-    ZombieTypes[7].spriteHeight = 41;
     ZombieTypes[7].DMG = 15;
     ZombieTypes[7].HP = 1;
     ZombieTypes[7].speed = 230;
     ZombieTypes[7].attackRate = 0.25;
-    ZombieTypes[7].colSize = 3;
     ZombieTypes[7].AnimtaionRate = 0.135f;
 
     //Enemy 9
 
-    zombieTextureSheets[8].loadFromFile("assets/Zombie9.png");
     ZombieTypes[8].type = 8;
-    ZombieTypes[8].hitboxWidth = 35;
-    ZombieTypes[8].hitboxHeight = 48;
-    ZombieTypes[8].spriteWidth = 35;
-    ZombieTypes[8].spriteHeight = 48;
     ZombieTypes[8].DMG = 5;
     ZombieTypes[8].HP = 30;
     ZombieTypes[8].speed = 150;
     ZombieTypes[8].attackRate = 0.25;
-    ZombieTypes[8].colSize = 3;
     ZombieTypes[8].AnimtaionRate = 0.135f;
 
     //Enemy 10
 
-    zombieTextureSheets[9].loadFromFile("assets/Zombie10.png");
     ZombieTypes[9].type = 9;
-    ZombieTypes[9].hitboxWidth = 35;
-    ZombieTypes[9].hitboxHeight = 48;
-    ZombieTypes[9].spriteWidth = 35;
-    ZombieTypes[9].spriteHeight = 48;
     ZombieTypes[9].DMG = 20;
     ZombieTypes[9].HP = 100;
     ZombieTypes[9].speed = 210;
     ZombieTypes[9].attackRate = 0.25;
-    ZombieTypes[9].colSize = 3;
     ZombieTypes[9].AnimtaionRate = 0.135f;
 
 }
@@ -1643,6 +1796,7 @@ string timerFormatHandler(int time) {
 }
 void resetGame() {
     charachterInitalization();
+    zombieInitalization();
     player[character].Start();
     player[character].currentXP = 0.0f;
     player[character].currentHealth = player[character].maxHealth;
@@ -1653,6 +1807,7 @@ void resetGame() {
     player[character].maxXP = 10;
     Zombies.clear();
     xpOrbs.clear();
+    ring.angle = 0.0f;
     projectile.active = false;
     isDead = false;
     isPaused = false;
@@ -1862,6 +2017,7 @@ void powerUps()
                     increasePlayerSpeed(50);
                     break;
                 }
+
                 // After any upgrade is clicked, we stop the upgrade screen
                 isUpgrading = false;
 
@@ -1941,6 +2097,7 @@ void upgradeItemsName()
     allUpgrades[3].text.setString("Vital Essence");
     allUpgrades[4].text.setString("Second Weapon");
     allUpgrades[5].text.setString("Falcon Boots");
+
 }
 void upgradesTextHandeling()
 {
@@ -1973,6 +2130,8 @@ void charachterInitalization()
     player[0].isWhipUnlocked = true;
     player[0].maxHealth = 100;
     player[0].isUnlocked = true;
+    player[0].isRingUnlocked = true;
+
 
     //Charachter 1/Adam
 
@@ -2200,4 +2359,54 @@ void increaseSpawnRate() {
     if (SpawnDelay < MinSpawnDelay) {
         SpawnDelay = MinSpawnDelay;
     }
+}
+void ringInitialization() {
+    ring.sprite.setTexture(ringTexture);
+    ring.sprite.setOrigin(34, 34); // Center the sprite (half of 68x68 frame)
+    ring.sprite.setTextureRect(IntRect(0, 0, 68, 68)); // First frame
+
+}
+void ringAnimation(float deltaTime) {
+    ring.animationTimer += deltaTime;
+    if (ring.animationTimer >= 0.1f) { // Switch frame every 0.1 seconds
+        ring.animationTimer = 0.0f;
+        ring.frameIndex = (ring.frameIndex + 1) % 4; // 4 frames in the sprite sheet
+        ring.sprite.setTextureRect(IntRect(0, ring.frameIndex * 68, 68, 68));
+    }
+}
+void ringRotation(float deltaTime, const Vector2f& playerPos) {
+    ring.angle += ring.rotationSpeed * deltaTime;
+    if (ring.angle >= 360.0f)
+    {
+        ring.angle -= 360.0f;
+    }
+
+    float radians = ring.angle * (3.14159f / 180.0f); // Convert to radians
+    ring.sprite.setPosition(
+        playerPos.x + cos(radians) * ring.radius,
+        playerPos.y + sin(radians) * ring.radius
+    );
+}
+void ringCollision() {
+    for (auto& zombie : Zombies) {
+        if (ring.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds())) {
+            if (zombie.canBeHit) {
+                zombie.HP -= player[character].whipDamage; // Use whip damage for the ring aashan ana mkasl
+                zombie.canBeHit = false;
+                zombie.lastHitTime = 0.0f;
+                zombie.Shape.setColor(Color::Red); // Visual feedback
+            }
+        }
+    }
+}
+void updateRing() {
+    if (!player[character].isRingUnlocked)
+        return; // Only update if the ring is unlocked for the current character
+
+    Vector2f playerPos = player[character].sprite.getPosition();
+
+    // Update ring components
+    ringAnimation(deltaTime);
+    ringRotation(deltaTime, playerPos);
+    ringCollision();
 }
