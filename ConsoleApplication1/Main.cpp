@@ -45,7 +45,8 @@ int  whipIndx = 11;
 int menu = 0; // 0 = main menu | 1 = infinite level | 2 = Shop
 float whipCooldownTimer = 0;
 float timeSinceLastHit = 999;
-float SpawnDelay = 0.5;
+float SpawnDelay = 1;
+float MinSpawnDelay = 0.25;
 float SpawnTimer = 0;
 float clickRegisterTimer = 0.1f;
 int zombiesKilled;
@@ -157,6 +158,7 @@ void SpwaningZombies();                     // Adam
 void separateZombies();                     // Adam
 Vector2f Normalize(Vector2f vector);        // Adam
 void zombieInitalization();                 // Adam
+void increaseSpawnRate();                   // Adam
 void bleedEffect();                         // Yassin & Adam
 void loadTextures();                        // Yassin
 void healthBarHandling();                   // Yassin
@@ -639,6 +641,7 @@ void Update()
         ZombieHandler();
         SpwaningZombies();
         separateZombies();
+        increaseSpawnRate();
 
         // run upgrades
         healingUpgrade();
@@ -2184,5 +2187,17 @@ void playEnemyHitSound() {
 void playPlayerHitSound() {
     if (playerHitSound.getStatus() != Sound::Playing) {
         playerHitSound.play();
+    }
+}
+void increaseSpawnRate() {
+    float timeMinutes = (float)time() / 60.0f;
+    float waveTimer = 2; // in minutes
+    SpawnDelay = 1;
+    while (timeMinutes >= waveTimer) {
+        timeMinutes -= waveTimer;
+        SpawnDelay *= 0.9;
+    }
+    if (SpawnDelay < MinSpawnDelay) {
+        SpawnDelay = MinSpawnDelay;
     }
 }
