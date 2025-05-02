@@ -14,13 +14,14 @@ using namespace sf;
 
 // Constants
 const float LOGO_ANIMATION_RATE = 0.06; // Indicates how fast are we switching logo's texture
+const float COIN_ANIMATION_RATE = 0.06; // Indicates how fast are we switching logo's texture
 const int WHIP_TRAVEL_DISTANCE = 2000; //How far the whip moves away from the player
 const float WHIP_RATE = 0.025; //how fast are we moving through whip texture
 const float PROJECTILE_SPEED = 400.0f;  // Adjust speed as needed
 const float PROJECTILE_COOLDOWN = 0.7f;  // Cooldown between auto shots
 const float EnemyAnimationRate = 0.135f;  //  How fast we are switching Enemy's texture
 const int numOfZombieTypes = 10;
-const int UPGRADES_NUM = 6;     //Upgrades number
+const int UPGRADES_NUM = 7;     //Upgrades number
 
 float projectileTimer = 0.0f;
 float projectileDespawnTime = 3.0f;
@@ -32,7 +33,7 @@ int character = 0; // 0 = main character ||
 int healingUpgradeLevel = 0;
 bool isUpgrading = false;
 bool isMenuOpen = false;
-int whipLvl = 1;
+
 int swings = 0;
 int shopPage = 0;
 bool isDead = false;
@@ -40,20 +41,31 @@ bool isPaused = false;
 int walkIndx = 0;
 int logoIndx = 0;
 float logoAnimationTimer = 0;// Logo's texture switch timer (Always set to ZERO)
+float coinAnimationTimer = 0;
 float whipTimer = 0; //whip's animation timer (always set to ZERO)
 int  whipIndx = 11;
-int menu = 0; // 0 = main menu | 1 = infinite level | 2 = Shop
+int coinIndx = 0;
+int menu = 0; // 0 = main menu | 1 = level | 2 = Shop | 3 = gore alert | 4 = options | 5 = leaderboard | 6 = name
 float whipCooldownTimer = 0;
 float timeSinceLastHit = 999;
-float SpawnDelay = 1;
-float MinSpawnDelay = 0.25;
+float SpawnDelay;
+float MinSpawnDelay = 0.025;
 float SpawnTimer = 0;
 float clickRegisterTimer = 0.1f;
 int zombiesKilled;
+int volume = 100;
+bool controls = 1; // 0:arrows | 1:wasd
 
 int bgIndx = 0;
 int coins = 500;
-int gameMode = 0;
+int gameMode = 0; // 0:Normal | 1:Gore
+
+// chest system
+bool chestbroken = false;
+bool orbcollected = false; //logy
+int healthBuff = 40;
+bool contentcollected = false;
+bool hasmagnet = false;
 
 sf::RenderWindow window(sf::VideoMode(1920, 1080), "Survival@Uni-Verse", Style::Fullscreen);
 Font font;
@@ -73,6 +85,8 @@ SoundBuffer healthBuffer;
 SoundBuffer bossBuffer;
 SoundBuffer coinBuffer;
 SoundBuffer levelCompleteBuffer;
+SoundBuffer chestBreakBuffer;
+SoundBuffer potionDrinkBuffer;
 
 // Sound Instances
 Sound clickSound;
@@ -86,32 +100,57 @@ Sound healthSound;
 Sound bossSound;
 Sound coinSound;
 Sound levelCompleteSound;
+Sound chestBreakSound;
+Sound potionDrinkSound;
 
 // Background Music
 Music backgroundMusic;
+Music normalLevelMusic;
+Music goreModeMusic;
+
 
 // sprite and Textures
 Sprite background;
 Sprite whip;
 Sprite logo;
 Sprite xpBarSprite;  // New XP bar sprite
-Sprite coin;
+Sprite menuCoin;
+Sprite chest; // logy
+Sprite potion; // logy
 
 Texture logoTexture;
 Texture menuBackgroundTexture;
 Texture backgroundTexture;
+Texture backgroundHorrorTexture;
 Texture whipSheet;
 Texture xpBarTexture;  // New XP bar texture
-Texture coinTexture;
+Texture menuCoinTexture;
+Texture chestTexture; // logy
+Texture potionTexture; // logy
+Texture coinsTexture;
+Texture magnetTexture;
 
 //texts
 Text scoreText;
 Text timerText;
 Text gameoverText[4];
 Text coinsText;
+Text playerSpeedStats;
+Text playerHealthStats;
+Text whipDmgStats;
+Text ringBaseDmgStats;
+Text whipCooldownStats;
+Text projectileDmgStats;
+Text projectileCooldownStats;
+Text playerStartingWeapon;
+Text currentName;
+Text leaderboardNames[10];
+Text leaderboardScores[10];
+Text leaderboardTimes[10];
+
 
 //Shapes
-RectangleShape whipHitbox(Vector2f(300, 45));
+RectangleShape whipHitbox(Vector2f(450, 45));
 RectangleShape healthBarBackground(Vector2f(60, 5));
 RectangleShape healthBarFill(Vector2f(60, 5));
 RectangleShape xpBarFill(Vector2f(0, 15));       // Start with 0 width to be empty
@@ -139,14 +178,26 @@ string scoreFormatHandler(int score);       // Aly
 int time();                                 // Aly
 string timerFormatHandler(int time);        // Aly
 void resetGame();                           // Aly
-void gameoverWidgets();                     // Aly
+void gameoverMenu();                        // Aly
 void gameoverMenuHandler();                 // Aly
 void shopWidgets();                         // Aly
 void nextButtonHandler();                   // Aly
 void backButtonHandler();                   // Aly
 void buyButtonHandler();                    // Aly
 void selectButtonHandler();                 // Aly
+void goreMenuInitialization();              // Aly
+void goreMenuHandler();                     // Aly
+void backgroundInitialization();            // Aly
+void optionsWidgets();                      // Aly
+void optionsHandler();                      // Aly
+void leaderboardWidgets();                  // Aly
+void leaderboardHandler();                  // Aly
+void nameWidgets();                         // Aly
+void nameHandler(Event event);              // Aly
+void notValidUpgradeRemover();              // Aly
 void whipAnimation();                       // Aly & Amr
+void saveGameData();                        // Amr
+void loadGameData();                        // Amr
 void charachterInitalization();             // Amr
 void BorderCollision();                     // Amr
 void lockViewToBackground();                // Amr
@@ -154,12 +205,21 @@ void whipCollider();                        // Amr
 void whipHitboxHandeling();                 // Amr
 void whipDmg();                             // Amr
 string coinFormatHandler(int coins);        // Amr
+void fontStatsInitalizer();                 // Amr
+void DefaultPlayerStats();                  // Amr
+void playerOneStats();                      // Amr
+void playerTwoStats();                      // Amr
+void playerThreeStats();                    // Amr
+void playerFourStats();                     // Amr
+void playerFiveStats();                     // Amr
+void playerSixStats();                      // Amr
+void playerSevenStats();                    // Amr
 void ZombieHandler();                       // Adam & Yassin & Amr
 void SpwaningZombies();                     // Adam
 void separateZombies();                     // Adam
 Vector2f Normalize(Vector2f vector);        // Adam
 void zombieInitalization();                 // Adam
-void increaseSpawnRate();                   // Adam
+void setSpawnRate();                        // Adam
 void bleedEffect();                         // Yassin & Adam
 void loadTextures();                        // Yassin
 void healthBarHandling();                   // Yassin
@@ -180,19 +240,56 @@ void powerUps();                            // Marwan
 void healingUpgrade();                      // Marwan
 void drawPowerUpsMenu();                    // Marwan
 void upgradeItemsHandeling();               // Marwan
-void maxHealthIncrease(int value, int limit);//Marwan
+void maxHealthIncrease(int value);          // Marwan
 void increasePlayerSpeed(int value);        // Marwan
 void upgradesMenuText();                    // Marwan
 void upgradeItemsName();                    // Marwan
 void upgradesTextHandeling();               // Marwan
+void maxLevelChecker();                     // Marwan
+void upgradeLevelText();                    // Marwan
+void upgradeDescriptionText();              // Marwan    
+void upgradeDescriptionNames();             // Marwan
+void upgradeDescriptionHandeling();         // Marwan
 void loadSounds();                          // Maritsia
 void playBackgroundMusic();                 // Maritsia
+void playNormalLevelMusic();                // Maritsia
+void playGoreLevelMusic();                  // Maritsia
 void playEnemyAppearSound();                // Maritsia
 void playFootstepsSound();                  // Maritsia
 void playEnemyHitSound();                   // Maritsia
 void playPlayerHitSound();                  // Maritsia
+void playChestBreakSound();                 // Maritsia
+void playPotionDrinkSound();                // Maritsia
+void playCoinSound();                       // Maritsia
+void loadChestAndOrb();                     // Logy
+void updateChestLogic();                    // Logy
+void updateposition1();                     // Logy
+void updateposition2();                     // Logy
+void updateposition3();                     // Logy
+void orbdirection();                        // Logy
+void coinAnimation();                       // Logy
+void leaderboardSort();
 
 //structs
+
+enum potiontype
+{
+    health,
+    coin,
+    magnet
+};
+
+struct chests
+{
+    bool chestbroken = false;
+    bool contentcollected = false;
+    potiontype type;
+    Sprite sprite;
+    Sprite itemsprite;
+    Texture texture;
+
+
+}chest1, chest2, chest3;
 
 struct RingWeapon {
     Sprite sprite;
@@ -213,21 +310,33 @@ struct UpgradesItem
     Texture texture;
     Font font;
     Text text;
-    int healingUpgradeLevel = 0;
     int maxHealthLevel = 0;
     int defenseUpgradeLevel = 0;
+    int whipLvl = 1;
+    int whipLvlReal = 0;
+    int healingUpgradeLevel = 0;
+    int secondWeaponUpgradeLvl = 0;
     int increasePlayerSpeedLevel = 0;
+    int ringUpgradeLevel = 0;
+    int upgradeMaxLevel = 5;
 };
 UpgradesItem upgradeLevel;
 UpgradesItem allUpgrades[UPGRADES_NUM];
 int offSetX[3] = { -510,0,510 };
 int upgradesIndices[3];
+int validUpgrades[UPGRADES_NUM];
+int currentUpgradelvl[UPGRADES_NUM];
+
+Text currentLevelText[UPGRADES_NUM];
+
+Text descriptionText[UPGRADES_NUM];
 
 struct Background {
     Sprite sprite;
     Texture texture;
+    Texture horrorTexture;
 };
-Background menuBG[10]; // 0:Main menu || 1:Pause Menu || 2:Gameover || 3:Upgrading || 4:Shop
+Background menuBG[9]; // 0:Main menu || 1:Pause Menu || 2:Gameover || 3:Upgrading || 4:Shop || 5:gore alert || 6:Options || 7: Leaderboard || 8:Name
 
 struct Projectile {
     Sprite sprite;
@@ -242,13 +351,39 @@ Texture projectileTexture;
 struct Button {
     Sprite sprite;
     Texture texture;
+    Texture horrorTexture;
+    Texture secondForm; // like off and on in volume ;)
+    Texture horrorSecondForm;
 };
+
+struct Score {
+    string name = "--------------------";
+    int time = 0;
+    int score = 0;
+}highscores[10], current;
 
 //menu
 Button playButton;
 Button shopButton;
 Button optionsButton;
 Button quitButton;
+Button modeChangeButton;
+Button yesButton;
+Button noButton;
+Button sliderButton;
+Button volumeButton;
+Button leaderboardButton;
+Button doneButton;
+
+Sprite slider;
+Texture sliderTexture;
+Sprite wasd;
+Texture wasdTexture;
+Texture wasdHorrorTexture;
+Sprite arrows;
+Texture arrowsTexture;
+Texture arrowsHorrorTexture;
+
 
 //shop
 Button backButton;
@@ -283,14 +418,15 @@ struct Character {
     bool isMoving = false;
     bool canAttack = true;
     float whipDamage = 10.0;
+    float ringDamage = 5.0;
     float whipCooldown = 1.0f;
     float ProjectileDamage = 10.0;
-    float projectileCooldown = 0.5f;
+    float projectileCooldown = 2.0f;
     float playerWidth = 40;
     float playerHeight = 56;
     float hitboxWidth = 20;
     float hitboxHeight = 40;
-    int playeFrameIndx = 16;
+    int playerFrameIndx = 16;
     bool isProjectileUnlocked = false;
     bool isWhipUnlocked = true;
     bool isUnlocked = false;
@@ -322,34 +458,66 @@ struct Character {
     void playerMovement()
     {
         isMoving = false;
-        if (Keyboard::isKeyPressed(Keyboard::W))
-        {
-            sprite.move(0, -speed * deltaTime);
-            isMoving = true;
-            //playFootstepsSound();
-        }
-        if (Keyboard::isKeyPressed(Keyboard::S))
-        {
-            sprite.move(0, speed * deltaTime);
-            isMoving = true;
-            //playFootstepsSound();
-        }
-        if (Keyboard::isKeyPressed(Keyboard::A))
-        {
-            sprite.move(-speed * deltaTime, 0);
-            isMoving = true;
-            sprite.setScale(1, 1);
-            position = true; //Player is facing Left
-            //playFootstepsSound();
-        }
-        if (Keyboard::isKeyPressed(Keyboard::D))
-        {
-            sprite.move(speed * deltaTime, 0);
-            isMoving = true;
-            sprite.setScale(-1, 1);
-            position = false; //Player is facing right
-            //playFootstepsSound();
+        if (controls == 0) {
+            if (Keyboard::isKeyPressed(Keyboard::Up))
+            {
+                sprite.move(0, -speed * deltaTime);
+                isMoving = true;
+                //playFootstepsSound();
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Down))
+            {
+                sprite.move(0, speed * deltaTime);
+                isMoving = true;
+                //playFootstepsSound();
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Left))
+            {
+                sprite.move(-speed * deltaTime, 0);
+                isMoving = true;
+                sprite.setScale(1, 1);
+                position = true; //Player is facing Left
+                //playFootstepsSound();
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Right))
+            {
+                sprite.move(speed * deltaTime, 0);
+                isMoving = true;
+                sprite.setScale(-1, 1);
+                position = false; //Player is facing right
+                //playFootstepsSound();
 
+            }
+        } if (controls == 1) {
+            if (Keyboard::isKeyPressed(Keyboard::W))
+            {
+                sprite.move(0, -speed * deltaTime);
+                isMoving = true;
+                //playFootstepsSound();
+            }
+            if (Keyboard::isKeyPressed(Keyboard::S))
+            {
+                sprite.move(0, speed * deltaTime);
+                isMoving = true;
+                //playFootstepsSound();
+            }
+            if (Keyboard::isKeyPressed(Keyboard::A))
+            {
+                sprite.move(-speed * deltaTime, 0);
+                isMoving = true;
+                sprite.setScale(1, 1);
+                position = true; //Player is facing Left
+                //playFootstepsSound();
+            }
+            if (Keyboard::isKeyPressed(Keyboard::D))
+            {
+                sprite.move(speed * deltaTime, 0);
+                isMoving = true;
+                sprite.setScale(-1, 1);
+                position = false; //Player is facing right
+                //playFootstepsSound();
+
+            }
         }
 
         sprite.setOrigin(sprite.getLocalBounds().width / 2, sprite.getLocalBounds().height / 2);
@@ -364,7 +532,7 @@ struct Character {
             if (animationTimer >= ANIMATION_RATE)
             {
                 animationTimer = 0;
-                walkIndx = (walkIndx + 1) % playeFrameIndx;
+                walkIndx = (walkIndx + 1) % playerFrameIndx;
             }
             // Display the current frame from the vertical sprite sheet.
             sprite.setTextureRect(IntRect(0, walkIndx * playerHeight, playerWidth, playerHeight));
@@ -394,7 +562,7 @@ struct Character {
         if (animationTimer >= ANIMATION_RATE)
         {
             animationTimer = 0;
-            walkIndx = (walkIndx + 1) % playeFrameIndx;
+            walkIndx = (walkIndx + 1) % playerFrameIndx;
         }
         // Display the current frame from the vertical sprite sheet.
         sprite.setTextureRect(IntRect(0, walkIndx * playerHeight, playerWidth, playerHeight));
@@ -464,7 +632,6 @@ struct Enemies {
         //animate
         if (AnimtaionTimer >= AnimtaionRate) {
             AnimtaionTimer = 0;
-            Shape.setTexture(zombieTextureSheets[type]);
 
 
             AnimationIndex = (AnimationIndex + 1) % colSize;
@@ -493,7 +660,6 @@ struct Enemies {
     void Die() {
         if (HP <= 0) {
             isDead = true;
-
         }
     }
 
@@ -513,30 +679,40 @@ int main()
     while (window.isOpen())
     {
         deltaTime = clock.restart().asSeconds();
-        sf::Event event;
+        Event event;
         while (window.pollEvent(event))
         {
+            nameHandler(event);
             if (event.type == sf::Event::Closed)
                 window.close();
         }
         Update();
         Draw();
     }
+
+    saveGameData();
     return 0;
 }
 void Start()
 {
+    loadGameData();
+    //cout << volume << endl;
+
+    srand(time(0));
+
     window.setFramerateLimit(144);
     player[character].Start();
     font.loadFromFile("assets/Pixel_Game.otf");
     scoreText.setFont(font);
     timerText.setFont(font);
     coinsText.setFont(font);
+    currentName.setFont(font);
+    fontStatsInitalizer();
 
-    gameoverWidgets();
     loadTextures();
     mainmenuWidgets();
     shopWidgets();
+    optionsWidgets();
     whipHitboxHandeling();
 
     loadSounds();
@@ -580,20 +756,34 @@ void Start()
 
     // Upgrades
 
-    allUpgrades[0].sprite.setScale(5, 5);
-    allUpgrades[1].sprite.setScale(5, 5);
-    allUpgrades[2].sprite.setScale(5, 5);
-    allUpgrades[3].sprite.setScale(5, 5);
-    allUpgrades[4].sprite.setScale(5, 5);
-    allUpgrades[5].sprite.setScale(5, 5);
+    allUpgrades[0].sprite.setScale(8, 8);
+    allUpgrades[1].sprite.setScale(8, 8);
+    allUpgrades[2].sprite.setScale(8, 8);
+    allUpgrades[3].sprite.setScale(8, 8);
+    allUpgrades[4].sprite.setScale(8, 8);
+    allUpgrades[5].sprite.setScale(8, 8);
+    allUpgrades[6].sprite.setScale(8, 8);
 
     upgradesMenuText();
+
+    for (int i = 0; i < UPGRADES_NUM; i++)
+    {
+        currentLevelText[i].setFont(font);
+        currentLevelText[i].setCharacterSize(70);
+        currentLevelText[i].setFillColor(Color::White);
+        currentLevelText[i].setOutlineColor(Color::Black);
+        currentLevelText[i].setOutlineThickness(3);
+    }
+
+    upgradeDescriptionText();
 
     //Enemies
     zombieInitalization();
 
     // Characters
     charachterInitalization();
+
+    loadChestAndOrb();
 }
 void Update()
 {
@@ -609,8 +799,6 @@ void Update()
     else if (menu == 1) { // game
 
         //UI
-
-
         if (isDead) {
             backtomenuButton.sprite.setPosition(1920 / 2, 900);
             scoreText.setPosition(1920 / 1.2 - 270, 1080 / 4 + 200);
@@ -622,6 +810,7 @@ void Update()
         if (isUpgrading) {
             powerUps();
             upgradeItemsHandeling();
+            notValidUpgradeRemover();
             return;
         }
 
@@ -663,17 +852,18 @@ void Update()
 
 
         //Enemy
+        setSpawnRate();
         ZombieHandler();
         SpwaningZombies();
         separateZombies();
-        increaseSpawnRate();
 
         // run upgrades
         healingUpgrade();
 
         //orbs
         updateXPOrbs();
-
+        updateChestLogic();
+        coinAnimation();
     }
     else if (menu == 2) { // Shop
         backtomenuButtonHandler();
@@ -683,6 +873,21 @@ void Update()
         selectButtonHandler();
         player[shopPage].playerShopAnimation();
         coinsText.setString(coinFormatHandler((coins)));
+    }
+    else if (menu == 3) { //gore menu
+        goreMenuInitialization();
+        goreMenuHandler();
+    }
+    else if (menu == 4) {
+        backtomenuButtonHandler();
+        optionsHandler();
+    }
+    else if (menu == 5) {
+        backtomenuButtonHandler();
+        leaderboardHandler();
+    }
+    else if (menu == 6) {
+        player[character].playerShopAnimation();
     }
 }
 void Draw()
@@ -697,7 +902,9 @@ void Draw()
         window.draw(optionsButton.sprite);
         window.draw(quitButton.sprite);
         window.draw(coinsText);
-        window.draw(coin);
+        window.draw(menuCoin);
+        window.draw(modeChangeButton.sprite);
+        window.draw(leaderboardButton.sprite);
     }
     else if (menu == 1) { // game
         // Draw game world (with game view)
@@ -733,7 +940,30 @@ void Draw()
         healthBarHandling();
         window.draw(healthBarBackground);
         window.draw(healthBarFill);
-        // Draw XP orbs
+
+        if (!chest1.chestbroken) {
+            window.draw(chest1.sprite);
+        }
+        else if (!chest1.contentcollected) { //logy
+            window.draw(chest1.itemsprite);
+
+        }
+        if (!chest2.chestbroken)
+        {
+            window.draw(chest2.sprite);
+        }
+        else if (!chest2.contentcollected)
+        {
+            window.draw(chest2.itemsprite);
+        }
+        if (!chest3.chestbroken)
+        {
+            window.draw(chest3.sprite);
+        }
+        else if (!chest3.contentcollected)
+        {
+            window.draw(chest3.itemsprite);
+        }
 
 
 
@@ -747,8 +977,7 @@ void Draw()
         window.draw(scoreText);
         window.draw(timerText);
 
-        // pause menu
-
+        // menus
 
         if (isDead) {
             window.draw(menuBG[2].sprite);
@@ -759,7 +988,7 @@ void Draw()
         }
         else {
             window.draw(coinsText);
-            window.draw(coin);
+            window.draw(menuCoin);
         }
 
         if (isUpgrading) {
@@ -782,7 +1011,15 @@ void Draw()
         window.draw(menuBG[4].sprite);
         window.draw(backtomenuButton.sprite);
         window.draw(coinsText);
-        window.draw(coin);
+        window.draw(menuCoin);
+        DefaultPlayerStats();
+        playerOneStats();
+        playerTwoStats();
+        playerThreeStats();
+        playerFourStats();
+        playerFiveStats();
+        playerSixStats();
+        playerSevenStats();
 
         if (shopPage != 0) {
             window.draw(backButton.sprite);
@@ -800,31 +1037,89 @@ void Draw()
         window.draw(player[shopPage].sprite);
 
     }
+
+    else if (menu == 3) { // gore alert
+        window.setView(window.getDefaultView());
+        window.draw(menuBG[5].sprite);
+        window.draw(yesButton.sprite);
+        window.draw(noButton.sprite);
+
+    }
+    else if (menu == 4) {
+        window.setView(window.getDefaultView());
+        window.draw(menuBG[6].sprite);
+        window.draw(backtomenuButton.sprite);
+        window.draw(volumeButton.sprite);
+        window.draw(slider);
+        window.draw(sliderButton.sprite);
+        window.draw(selectButton.sprite);
+        window.draw(wasd);
+        window.draw(arrows);
+    }
+    else if (menu == 5) {
+        window.setView(window.getDefaultView());
+        window.draw(menuBG[7].sprite);
+        window.draw(backtomenuButton.sprite);
+
+        for (int i = 0; i < 10; i++) {
+
+            window.draw(leaderboardNames[i]);
+            window.draw(leaderboardScores[i]);
+            window.draw(leaderboardTimes[i]);
+
+        }
+    }
+    else if (menu == 6) {
+        window.setView(window.getDefaultView());
+        window.draw(menuBG[8].sprite);
+        window.draw(doneButton.sprite);
+        window.draw(currentName);
+        window.draw(player[character].sprite);
+    }
     window.display();
 }
 
 void loadTextures()
 {
     backgroundTexture.loadFromFile("assets/Background.png");
-    background.setTexture(backgroundTexture);
+    backgroundHorrorTexture.loadFromFile("assets/Background_horror.png");
+    backgroundInitialization();
 
     player[0].texture.loadFromFile("assets/player_sheet.png");
     whipSheet.loadFromFile("assets/whipsheet.png");
     whip.setTexture(whipSheet);
     logoTexture.loadFromFile("assets/Logo.png");
     playButton.texture.loadFromFile("assets/play_button.png");
+    playButton.horrorTexture.loadFromFile("assets/play_button_horror.png");
+    playButton.sprite.setTexture(playButton.texture);
     shopButton.texture.loadFromFile("assets/shop_button.png");
+    shopButton.horrorTexture.loadFromFile("assets/shop_button_horror.png");
     optionsButton.texture.loadFromFile("assets/options_button.png");
+    optionsButton.horrorTexture.loadFromFile("assets/options_button_horror.png");
     quitButton.texture.loadFromFile("assets/quit_button.png");
+    quitButton.horrorTexture.loadFromFile("assets/quit_button_horror.png");
     backButton.texture.loadFromFile("assets/back_button.png");
-    backButton.sprite.setTexture(backButton.texture);
+    backButton.horrorTexture.loadFromFile("assets/back_button_horror.png");
     nextButton.texture.loadFromFile("assets/next_button.png");
-    nextButton.sprite.setTexture(nextButton.texture);
+    nextButton.horrorTexture.loadFromFile("assets/next_button_horror.png");
     buyButton.texture.loadFromFile("assets/buy_button.png");
-    buyButton.sprite.setTexture(buyButton.texture);
+    buyButton.horrorTexture.loadFromFile("assets/buy_button_horror.png");
     selectButton.texture.loadFromFile("assets/select_button.png");
-    selectButton.sprite.setTexture(selectButton.texture);
+    selectButton.horrorTexture.loadFromFile("assets/select_button_horror.png");
+    modeChangeButton.texture.loadFromFile("assets/modechange_button_horror.png");
+    modeChangeButton.horrorTexture.loadFromFile("assets/modechange_button.png");
+    modeChangeButton.sprite.setTexture(modeChangeButton.texture);
+    yesButton.texture.loadFromFile("assets/yes_button.png");
+    yesButton.sprite.setTexture(yesButton.texture);
+    noButton.texture.loadFromFile("assets/no_button.png");
+    noButton.sprite.setTexture(noButton.texture);
+    leaderboardButton.texture.loadFromFile("assets/leaderboard_button.png");
+    leaderboardButton.horrorTexture.loadFromFile("assets/leaderboard_button_horror.png");
+    doneButton.texture.loadFromFile("assets/done_button.png");
+    doneButton.horrorTexture.loadFromFile("assets/done_button_horror.png");
     menuBG[0].texture.loadFromFile("assets/menu_background.png");
+    menuBG[0].horrorTexture.loadFromFile("assets/goremenu_background.png");
+    menuBG[0].sprite.setTexture(menuBG[0].texture);
     menuBG[1].texture.loadFromFile("assets/pause_background.png");
     menuBG[1].sprite.setTexture(menuBG[1].texture);
     menuBG[2].texture.loadFromFile("assets/gameover_background.png");
@@ -832,21 +1127,68 @@ void loadTextures()
     menuBG[3].texture.loadFromFile("assets/upgrade_background.png");
     menuBG[3].sprite.setTexture(menuBG[3].texture);
     menuBG[4].texture.loadFromFile("assets/shop_background.png");
+    menuBG[4].horrorTexture.loadFromFile("assets/goreshop_background.png");
     menuBG[4].sprite.setTexture(menuBG[4].texture);
+    menuBG[5].horrorTexture.loadFromFile("assets/gorealert_background.png");
+    menuBG[5].sprite.setTexture(menuBG[5].texture);
+    menuBG[6].texture.loadFromFile("assets/options_background.png");
+    menuBG[6].horrorTexture.loadFromFile("assets/goreoptions_background.png");
+    menuBG[6].sprite.setTexture(menuBG[6].texture);
+    menuBG[7].texture.loadFromFile("assets/leaderboard_background.png");
+    menuBG[7].horrorTexture.loadFromFile("assets/goreleaderboard_background.png");
+    menuBG[7].sprite.setTexture(menuBG[7].texture);
+    menuBG[8].texture.loadFromFile("assets/name_background.png");
+    menuBG[8].horrorTexture.loadFromFile("assets/gorename_background.png");
+    menuBG[8].sprite.setTexture(menuBG[8].texture);
     xpBarTexture.loadFromFile("assets/xpbar.png");
     xpBarSprite.setTexture(xpBarTexture);
     projectileTexture.loadFromFile("assets/projectile.png");
+    projectile.sprite.setTexture(projectileTexture);
     pauseButton.texture.loadFromFile("assets/pause_button.png");
-    pauseButton.sprite.setTexture(pauseButton.texture);
+    pauseButton.horrorTexture.loadFromFile("assets/pause_button_horror.png");
     backtogameButton.texture.loadFromFile("assets/backtogame_button.png");
+    backtogameButton.horrorTexture.loadFromFile("assets/backtogame_button_horror.png");
     backtogameButton.sprite.setTexture(backtogameButton.texture);
     backtomenuButton.texture.loadFromFile("assets/backtomenu_button.png");
+    backtomenuButton.horrorTexture.loadFromFile("assets/backtomenu_button_horror.png");
     backtomenuButton.sprite.setTexture(backtomenuButton.texture);
     xpOrbTexture.loadFromFile("assets/xpOrb.png");
-    coinTexture.loadFromFile("assets/menu_coin.png");
-    coin.setTexture(coinTexture);
+    menuCoinTexture.loadFromFile("assets/menu_coin.png");
+    menuCoin.setTexture(menuCoinTexture);
     ringTexture.loadFromFile("assets/Rings.png");
+    sliderButton.texture.loadFromFile("assets/slider_button.png");
+    sliderButton.horrorTexture.loadFromFile("assets/slider_button_horror.png");
+    sliderTexture.loadFromFile("assets/slider.png");
+    slider.setTexture(sliderTexture);
+    volumeButton.texture.loadFromFile("assets/volume_on_button.png");
+    volumeButton.secondForm.loadFromFile("assets/volume_off_button.png");
+    volumeButton.horrorTexture.loadFromFile("assets/volume_on_button_horror.png");
+    volumeButton.horrorSecondForm.loadFromFile("assets/volume_off_button_horror.png");
+    arrowsTexture.loadFromFile("assets/arrows.png");
+    arrowsHorrorTexture.loadFromFile("assets/arrows_horror.png");
+    wasdTexture.loadFromFile("assets/wasd.png");
+    wasdHorrorTexture.loadFromFile("assets/wasd_horror.png");
 
+    chestTexture.loadFromFile("assets/chest.png");
+    potionTexture.loadFromFile("assets/potion.png");
+    coinsTexture.loadFromFile("assets/coin.png");
+    magnetTexture.loadFromFile("assets/magnet.png");
+    chest.setTexture(chestTexture);
+    chest1.sprite.setTexture(chestTexture);
+    chest1.type = health;
+    chest1.itemsprite.setTexture(potionTexture);
+    chest1.sprite.setScale(1.5, 1.5);
+    chest1.itemsprite.setScale(1.5, 1.5);
+    chest2.sprite.setTexture(chestTexture);
+    chest2.type = coin;
+    chest2.itemsprite.setTexture(coinsTexture);
+    chest2.sprite.setScale(1.5, 1.5);
+    chest2.itemsprite.setScale(1.5, 1.5);
+    chest3.sprite.setTexture(chestTexture);
+    chest3.type = magnet;
+    chest3.itemsprite.setTexture(magnetTexture);
+    chest3.sprite.setScale(1.5, 1.5);
+    chest3.itemsprite.setScale(1.5, 1.5);
 
     //upgrades
     allUpgrades[0].texture.loadFromFile("assets/maxhealth_upgrade.png");
@@ -861,6 +1203,17 @@ void loadTextures()
     allUpgrades[4].sprite.setTexture(allUpgrades[4].texture);
     allUpgrades[5].texture.loadFromFile("assets/speed_upgrade.png");
     allUpgrades[5].sprite.setTexture(allUpgrades[5].texture);
+    allUpgrades[6].texture.loadFromFile("assets/Rings_upgrade.png");
+    allUpgrades[6].sprite.setTexture(allUpgrades[6].texture);
+    //charachter textures
+    player[0].texture.loadFromFile("assets/player_sheet.png");
+    player[1].texture.loadFromFile("assets/adam_sheet.png");
+    player[2].texture.loadFromFile("assets/aly_sheet.png");
+    player[3].texture.loadFromFile("assets/amr_sheet.png");
+    player[4].texture.loadFromFile("assets/logy_sheet.png");
+    player[5].texture.loadFromFile("assets/maritsia_sheet.png");
+    player[6].texture.loadFromFile("assets/yassin_sheet.png");
+    player[7].texture.loadFromFile("assets/marwan_sheet.png");
 
 }
 void BorderCollision()
@@ -952,7 +1305,7 @@ void whipAnimation()
         // End of full swing animation
         if (whipIndx == 12)
         {
-            if (whipLvl == 2 && swings == 0)
+            if (upgradeLevel.whipLvl == 2 && swings == 0)
             {
                 // Flip for second swing
                 swings = 1;
@@ -996,11 +1349,11 @@ void whipCollider()
 
     if (whip.getScale().x < 0) // Facing right
     {
-        offset.x = -25; // visually compensate
+        offset.x = -50; // visually compensate
     }
     else // Facing left
     {
-        offset.x = 25;
+        offset.x = 50;
     }
 
     offset.y = 45;
@@ -1033,6 +1386,7 @@ void healthBarHandling()
     if (player[character].currentHealth <= 0.05) {
         isDead = true;
         gameOverSound.play();
+        gameoverMenu();
     }
 
 }//Yassin Amr
@@ -1058,11 +1412,12 @@ void addXp(float xpToAdd)
 }//Yassin Amr
 void takeDamage(float damage)
 {
-    player[character].currentHealth -= damage;
+    float reduction = 0.10 * upgradeLevel.defenseUpgradeLevel;
+    player[character].currentHealth -= damage * (1.0 - reduction);
     playEnemyHitSound();
     if (player[character].currentHealth < 0)
         player[character].currentHealth = 0;
-}//Yassin Amr
+}
 void heal(float amount)
 {
     player[character].currentHealth += amount;
@@ -1075,25 +1430,19 @@ void mainmenuWidgets() {
     logo.setPosition(1920 / 4, 1080 / 2);
     logo.setScale(1, 1);
 
-    playButton.sprite.setTexture(playButton.texture);
-    playButton.sprite.setOrigin(playButton.sprite.getLocalBounds().width / 2, playButton.sprite.getLocalBounds().height / 2);
-    playButton.sprite.setPosition(1470, 400);
+
+    playButton.sprite.setPosition(1260, 200);
     playButton.sprite.setScale(2.0f, 2.0f);
 
-    shopButton.sprite.setTexture(shopButton.texture);
-    shopButton.sprite.setOrigin(shopButton.sprite.getLocalBounds().width / 2, shopButton.sprite.getLocalBounds().height / 2);
-    shopButton.sprite.setPosition(1470, 650);
+    shopButton.sprite.setPosition(1260, 450);
     shopButton.sprite.setScale(2.0f, 2.0f);
 
-    optionsButton.sprite.setTexture(optionsButton.texture);
-    optionsButton.sprite.setOrigin(optionsButton.sprite.getLocalBounds().width / 2, optionsButton.sprite.getLocalBounds().height / 2);
-    optionsButton.sprite.setPosition(1470, 900);
+    optionsButton.sprite.setPosition(1260, 700);
     optionsButton.sprite.setScale(2.0f, 2.0f);
 
-    quitButton.sprite.setTexture(quitButton.texture);
-    quitButton.sprite.setPosition(96, 54);
+    leaderboardButton.sprite.setPosition(300, 54);
 
-    menuBG[0].sprite.setTexture(menuBG[0].texture);
+    quitButton.sprite.setPosition(96, 54);
 
     coinsText.setString(coinFormatHandler((coins)));
     coinsText.setCharacterSize(100);
@@ -1102,7 +1451,34 @@ void mainmenuWidgets() {
     coinsText.setOutlineColor(Color::Black);
     coinsText.setOutlineThickness(2);
 
-    coin.setPosition(1600, 35);
+    modeChangeButton.sprite.setPosition(1920 / 4 - 100, 900);
+
+    if (gameMode == 0) { // normal textures
+        modeChangeButton.sprite.setTexture(modeChangeButton.texture);
+        playButton.sprite.setTexture(playButton.texture);
+        menuBG[0].sprite.setTexture(menuBG[0].texture);
+        optionsButton.sprite.setTexture(optionsButton.texture);
+        shopButton.sprite.setTexture(shopButton.texture);
+        quitButton.sprite.setTexture(quitButton.texture);
+        pauseButton.sprite.setTexture(pauseButton.texture);
+        backtomenuButton.sprite.setTexture(backtomenuButton.texture);
+        backtogameButton.sprite.setTexture(backtogameButton.texture);
+        leaderboardButton.sprite.setTexture(leaderboardButton.texture);
+    }
+    else if (gameMode == 1) { // horror textures
+        modeChangeButton.sprite.setTexture(modeChangeButton.horrorTexture);
+        playButton.sprite.setTexture(playButton.horrorTexture);
+        menuBG[0].sprite.setTexture(menuBG[0].horrorTexture);
+        optionsButton.sprite.setTexture(optionsButton.horrorTexture);
+        shopButton.sprite.setTexture(shopButton.horrorTexture);
+        quitButton.sprite.setTexture(quitButton.horrorTexture);
+        pauseButton.sprite.setTexture(pauseButton.horrorTexture);
+        backtomenuButton.sprite.setTexture(backtomenuButton.horrorTexture);
+        backtogameButton.sprite.setTexture(backtogameButton.horrorTexture);
+        leaderboardButton.sprite.setTexture(leaderboardButton.horrorTexture);
+    }
+
+    menuCoin.setPosition(1600, 35);
 }
 void bleedEffect()
 {
@@ -1140,11 +1516,9 @@ void mainMenuButtons() {
         playButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
+            menu = 6;
+            nameWidgets();
             sleep(milliseconds(200));
-            menu = 1;
-            backgroundMusic.pause();
-            //RESETING
-            resetGame();
         }
     }
     else
@@ -1161,18 +1535,16 @@ void mainMenuButtons() {
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             coinsText.setPosition(200, 50);
-            coin.setPosition(140, 85);
+            menuCoin.setPosition(140, 85);
             sleep(milliseconds(200));
             shopPage = 0;
+            shopWidgets();
 
             for (int i = 0; i < 8; i++) {
                 player[i].sprite.setScale(5, 5);
                 player[i].sprite.setPosition(570, 1080 / 2 + 50);
                 player[i].sprite.setColor(Color::White);
             }
-
-            backtomenuButton.sprite.setPosition(1920 / 1.2 + 100, 1080 / 5 - 50);
-            backtomenuButton.sprite.setScale(1, 1);
             menu = 2;
         }
     }
@@ -1190,6 +1562,14 @@ void mainMenuButtons() {
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             sleep(milliseconds(200));
+
+            backtomenuButton.sprite.setPosition(1920 / 1.2 + 100, 1080 / 5 - 50);
+            backtomenuButton.sprite.setScale(1, 1);
+
+            menu = 4;
+
+            optionsWidgets();
+
         }
     }
     else
@@ -1205,7 +1585,7 @@ void mainMenuButtons() {
         quitButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
-            sleep(milliseconds(200)); // little delay before starting game for smooth transition
+            sleep(milliseconds(200));
             window.close();
         }
     }
@@ -1214,6 +1594,46 @@ void mainMenuButtons() {
         quitButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
         quitButton.sprite.setColor(Color::White);
     }
+
+    if (modeChangeButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        modeChangeButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+        modeChangeButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            if (gameMode == 0) {
+                menu = 3;
+            }
+            else if (gameMode == 1) {
+                gameMode = 0;
+                mainmenuWidgets();
+            }
+            clickSound.play();
+            sleep(milliseconds(200));
+        }
+    }
+    else
+    {
+        modeChangeButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+        modeChangeButton.sprite.setColor(Color::White);
+    }
+
+    if (leaderboardButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        leaderboardButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+        leaderboardButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            menu = 5;
+            clickSound.play();
+            sleep(milliseconds(200));
+            leaderboardWidgets();
+        }
+    }
+    else
+    {
+        leaderboardButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+        leaderboardButton.sprite.setColor(Color::White);
+    }
+
 }
 Vector2f getDirectionToNearestZombie() {
     if (Zombies.empty()) {
@@ -1241,7 +1661,6 @@ void createProjectile()
     if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active && !Zombies.empty())
     {
         projectileTimer = 0;  // Reset timer
-        projectile.sprite.setTexture(projectileTexture);
         projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
         projectile.sprite.setPosition(player[character].sprite.getPosition());
         projectile.active = true;
@@ -1475,13 +1894,27 @@ void backtomenuButtonHandler() {
         backtomenuButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
         backtomenuButton.sprite.setColor(sf::Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
+
+            if (menu == 1) { // logic that happens only if we back to menu from game
+                backgroundMusic.play();
+                goreModeMusic.pause();
+                normalLevelMusic.pause();
+
+                if (zombiesKilled > highscores[9].score) {
+                    highscores[9].score = zombiesKilled;
+                    highscores[9].time = time();
+
+                    if (current.name == "") {
+                        highscores[9].name = "Anonymous";
+                    }
+                    else {
+                        highscores[9].name = current.name;
+                    }
+                }
+            }
             clickSound.play();
-            coinsText.setPosition(1660, 0);
-            coin.setPosition(1600, 35);
+            mainmenuWidgets();
             menu = 0;
-            backgroundMusic.play();
-            logo.setPosition(1920 / 4, 1080 / 2);
-            logo.setScale(1, 1);
         }
     }
     else
@@ -1797,6 +2230,7 @@ string timerFormatHandler(int time) {
 void resetGame() {
     charachterInitalization();
     zombieInitalization();
+    backgroundInitialization();
     player[character].Start();
     player[character].currentXP = 0.0f;
     player[character].currentHealth = player[character].maxHealth;
@@ -1819,8 +2253,15 @@ void resetGame() {
     whipCooldownTimer = 0;
     timeSinceLastHit = 999;
     swings = 0;
-    whipLvl = 1;
+    upgradeLevel.whipLvl = 1;
     upgradeLevel.healingUpgradeLevel = 0;
+    upgradeLevel.defenseUpgradeLevel = 0;
+    upgradeLevel.increasePlayerSpeedLevel = 0;
+    upgradeLevel.maxHealthLevel = 0;
+    upgradeLevel.secondWeaponUpgradeLvl = 0;
+    for (int i = 0; i < UPGRADES_NUM; i++) {
+        currentUpgradelvl[i] = 0;
+    }
     timerClock.restart();
     totalPausedTime = Time::Zero;
     whip.setPosition(5000, 5000);
@@ -1844,7 +2285,7 @@ void resetGame() {
     coinsText.setFillColor(Color(205, 145, 43));
     coinsText.setOutlineColor(Color::Black);
     coinsText.setOutlineThickness(2);
-    coin.setPosition(1600, 935);
+    menuCoin.setPosition(1600, 935);
 
     xpBarFill.setSize(Vector2f(0, 15));
 
@@ -1918,7 +2359,7 @@ void updateXPOrbs() {
         }
     }
 }
-void gameoverWidgets() {
+void gameoverMenu() {
 
     for (int i = 0; i < 4; i++) {
         gameoverText[i].setFont(font);
@@ -1934,6 +2375,20 @@ void gameoverWidgets() {
 
     gameoverText[2].setString("Time Survived: ");
     gameoverText[2].setPosition(1920 / 5, 1080 / 4 + 350);
+
+    leaderboardSort();
+
+    // compare with lowest score and if higher replace it with current
+    if (zombiesKilled > highscores[9].score) {
+        highscores[9].score = zombiesKilled;
+        highscores[9].time = time();
+        if (current.name == "") {
+            highscores[9].name = "Anonymous";
+        }
+        else {
+            highscores[9].name = current.name;
+        }
+    }
 
     //gameoverText[3].setString("You can do better.");
     //gameoverText[3].setPosition(1920 / 4 + 130, 1080 / 4 + 550);
@@ -1961,258 +2416,270 @@ string coinFormatHandler(int coins) {
 
     return formatedCoins;
 }
-void drawPowerUpsMenu()
-{
-    window.draw(menuBG[3].sprite);
-    for (int i = 0; i < 3; i++)
-    {
-        window.draw(allUpgrades[upgradesIndices[i]].sprite);
-        window.draw(allUpgrades[upgradesIndices[i]].text);
-    }
-}
-void powerUps()
-{
-    for (int i = 0; i < UPGRADES_NUM; i++)
-    {
-        // Check if the mouse is over the upgrade sprite
-        if (allUpgrades[i].sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
-        {
-            // Check if the user clicked the left mouse button
-            if (Mouse::isButtonPressed(Mouse::Left))
-            {
-                clickSound.play();
-                switch (i)
-                {
-                case 0:
-                    // Upgrade 0: Increase Max Health
-                    maxHealthIncrease(10, 150);
-                    break;
-
-                case 1:
-                    // Upgrade 1: Defense upgrade
-
-                    break;
-
-                case 2:
-                    // Upgrade 2: Upgrade whip
-                    whipLvl = 2;
-                    break;
-
-                case 3:
-                    // Upgrade 3: Health regeneration
-                    upgradeLevel.healingUpgradeLevel++;
-                    if (upgradeLevel.healingUpgradeLevel > 5)
-                    {
-                        upgradeLevel.healingUpgradeLevel = 5;
-                    }
-                    break;
-
-                case 4:
-                    // Upgrade 4: Unlock second weapon (projectile)
-                    player[character].isProjectileUnlocked = true;
-                    break;
-
-                case 5:
-                    // Upgrade 5: Increase player speed
-                    increasePlayerSpeed(50);
-                    break;
-                }
-
-                // After any upgrade is clicked, we stop the upgrade screen
-                isUpgrading = false;
-
-                // Prevent checking more upgrades — only one can be selected per click
-                break;
-            }
-        }
-    }
-}
-void healingUpgrade()
-{
-    float amount = (upgradeLevel.healingUpgradeLevel * 0.5) + 0.5;
-    if (upgradeLevel.healingUpgradeLevel > 0)
-    {
-        heal(amount * deltaTime);
-    }
-}
-void upgradeItemsHandeling()
-{
-    //Origin
-    for (int i = 0; i < UPGRADES_NUM; i++)
-    {
-        allUpgrades[i].sprite.setOrigin(allUpgrades[i].sprite.getLocalBounds().width / 2, allUpgrades[i].sprite.getLocalBounds().height / 2);
-    }
-    srand(time(0));
-    if (isMenuOpen)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            upgradesIndices[i] = rand() % 6;
-        }
-        while (upgradesIndices[0] == upgradesIndices[1])
-        {
-            upgradesIndices[1] = rand() % 6;
-        }
-        while (upgradesIndices[0] == upgradesIndices[2] || upgradesIndices[1] == upgradesIndices[2])
-        {
-            upgradesIndices[2] = rand() % 6;
-        }
-        for (int i = 0; i < 3; i++)
-        {
-            allUpgrades[upgradesIndices[i]].sprite.setPosition((1920 / 2) + offSetX[i], 1080 / 2);
-        }
-        upgradesTextHandeling();
-        isMenuOpen = false;
-    }
-}
-void maxHealthIncrease(int addValue, int limit)
-{
-    if (player[character].maxHealth < limit)
-    {
-        player[character].maxHealth += addValue;
-    }
-}
-void increasePlayerSpeed(int value)
-{
-    player[character].speed += value;
-}
-void upgradesMenuText()
-{
-    //coordinates:(left:-720,down:+255),(center:-210,down:+255),(right:+300,down:+255)
-    for (int i = 0; i < UPGRADES_NUM; i++)
-    {
-        allUpgrades[i].font.loadFromFile("assets/Pixel_Game.otf");
-        allUpgrades[i].text.setFont(allUpgrades[i].font);
-        allUpgrades[i].text.setFillColor(Color::Yellow);
-        allUpgrades[i].text.setOutlineColor(Color::Black);
-        allUpgrades[i].text.setOutlineThickness(4);
-    }
-    upgradeItemsName();
-}
-void upgradeItemsName()
-{
-    allUpgrades[0].text.setString("Life Crystal");
-    allUpgrades[1].text.setString("Shield");
-    allUpgrades[2].text.setString("Upgrade whip");
-    allUpgrades[3].text.setString("Vital Essence");
-    allUpgrades[4].text.setString("Second Weapon");
-    allUpgrades[5].text.setString("Falcon Boots");
-
-}
-void upgradesTextHandeling()
-{
-    allUpgrades[0].text.setPosition(allUpgrades[0].sprite.getPosition().x - 200, allUpgrades[0].sprite.getPosition().y + 270);
-    allUpgrades[0].text.setCharacterSize(85);
-
-    allUpgrades[1].text.setPosition(allUpgrades[1].sprite.getPosition().x - 100, allUpgrades[1].sprite.getPosition().y + 270);
-    allUpgrades[1].text.setCharacterSize(85);
-
-    allUpgrades[2].text.setPosition(allUpgrades[2].sprite.getPosition().x - 210, allUpgrades[2].sprite.getPosition().y + 270);
-    allUpgrades[2].text.setCharacterSize(85);
-
-    allUpgrades[3].text.setPosition(allUpgrades[3].sprite.getPosition().x - 210, allUpgrades[3].sprite.getPosition().y + 270);
-    allUpgrades[3].text.setCharacterSize(85);
-
-    allUpgrades[4].text.setPosition(allUpgrades[4].sprite.getPosition().x - 210, allUpgrades[4].sprite.getPosition().y + 275);
-    allUpgrades[4].text.setCharacterSize(75);
-
-    allUpgrades[5].text.setPosition(allUpgrades[5].sprite.getPosition().x - 210, allUpgrades[5].sprite.getPosition().y + 270);
-    allUpgrades[5].text.setCharacterSize(85);
-}
 void charachterInitalization()
 {
 
     //Default 0 /player
-
-    player[0].texture.loadFromFile("assets/player_sheet.png");
     player[0].sprite.setTexture(player[0].texture);
     player[0].isProjectileUnlocked = false;
     player[0].isWhipUnlocked = true;
-    player[0].maxHealth = 100;
     player[0].isUnlocked = true;
-    player[0].isRingUnlocked = true;
+    player[0].isRingUnlocked = false;
+    player[0].speed = 200;
+    player[0].position = true;
+    player[0].animationTimer = 0;
+    player[0].level = 1;
+    player[0].isMoving = false;
+    player[0].canAttack = true;
+    player[0].whipDamage = 10;
+    player[0].ringDamage = 5;
+    player[0].whipCooldown = 1.0f;
+    player[0].ProjectileDamage = 10;
+    player[0].projectileCooldown = 2.0f;
+    player[0].playerWidth = 40;
+    player[0].playerHeight = 56;
+    player[0].hitboxWidth = 20;
+    player[0].hitboxHeight = 40;
+    player[0].playerFrameIndx = 16;
+    player[0].maxHealth = 100.0f;
+    player[0].currentHealth = player[0].maxHealth;
+    player[0].maxXP = 10.0f;
+    player[0].currentXP = 0.0f;
+
+
+
+
+
 
 
     //Charachter 1/Adam
 
-    player[1].texture.loadFromFile("assets/adam_sheet.png");
     player[1].sprite.setTexture(player[1].texture);
-    player[1].playerWidth = 50;
-    player[1].playeFrameIndx = 15;
-    player[1].maxHealth = 500;
-    player[1].ProjectileDamage = 15;
+    player[1].playerFrameIndx = 15;
+    player[1].isProjectileUnlocked = false;
+    player[1].isWhipUnlocked = true;
+    player[1].isRingUnlocked = false;
     player[1].speed = 170;
-    player[1].isProjectileUnlocked = true;
-    player[1].isWhipUnlocked = false;
+    player[1].position = true;
+    player[1].animationTimer = 0;
+    player[1].level = 1;
+    player[1].isMoving = false;
+    player[1].canAttack = true;
+    player[1].whipDamage = 10;
+    player[1].ringDamage = 5;
+    player[1].whipCooldown = 1.0f;
+    player[1].ProjectileDamage = 15;
+    player[1].projectileCooldown = 2.0f;
+    player[1].playerWidth = 50;
+    player[1].playerHeight = 56;
+    player[1].hitboxWidth = 20;
+    player[1].hitboxHeight = 40;
+    player[1].maxHealth = 500;
+    player[1].currentHealth = player[1].maxHealth;
+    player[1].maxXP = 10.0f;
+    player[1].currentXP = 0.0f;
 
 
 
     //Charachter 2 /Aly
 
-    player[2].texture.loadFromFile("assets/aly_sheet.png");
+
     player[2].sprite.setTexture(player[2].texture);
-    player[2].speed = 230;
-    player[2].playeFrameIndx = 15;
+    player[2].playerFrameIndx = 15;
     player[2].isProjectileUnlocked = false;
     player[2].isWhipUnlocked = true;
+    player[2].isRingUnlocked = false;
+    player[2].speed = 230;
+    player[2].position = true;
+    player[2].animationTimer = 0;
+    player[2].level = 1;
+    player[2].isMoving = false;
+    player[2].canAttack = true;
+    player[2].whipDamage = 10;
+    player[2].ringDamage = 5;
+    player[2].whipCooldown = 1.0f;
+    player[2].ProjectileDamage = 15;
+    player[2].projectileCooldown = 2.0f;
+    player[2].playerWidth = 50;
+    player[2].playerHeight = 56;
+    player[2].hitboxWidth = 20;
+    player[2].hitboxHeight = 40;
     player[2].maxHealth = 100;
+    player[2].currentHealth = player[1].maxHealth;
+    player[2].maxXP = 10.0f;
+    player[2].currentXP = 0.0f;
+
+
 
     //Charchter 3 / Amr
 
-    player[3].texture.loadFromFile("assets/amr_sheet.png");
+
     player[3].sprite.setTexture(player[3].texture);
-    player[3].playerHeight = 64;
-    player[3].playeFrameIndx = 15;
+    player[3].playerFrameIndx = 15;
+    player[3].isProjectileUnlocked = false;
+    player[3].isWhipUnlocked = true;
+    player[3].isRingUnlocked = false;
+    player[3].speed = 200;
+    player[3].position = true;
+    player[3].animationTimer = 0;
+    player[3].level = 1;
+    player[3].isMoving = false;
+    player[3].canAttack = true;
     player[3].whipDamage = 20;
+    player[3].ringDamage = 5;
     player[3].whipCooldown = 0.5f;
-    player[2].isProjectileUnlocked = false;
-    player[2].isWhipUnlocked = true;
-    player[2].maxHealth = 100;
+    player[3].ProjectileDamage = 15;
+    player[3].projectileCooldown = 2.0f;
+    player[3].playerWidth = 50;
+    player[3].playerHeight = 64;
+    player[3].hitboxWidth = 20;
+    player[3].hitboxHeight = 40;
+    player[3].maxHealth = 100;
+    player[3].currentHealth = player[1].maxHealth;
+    player[3].maxXP = 10.0f;
+    player[3].currentXP = 0.0f;
+
+
 
     //Charchter 4 / Logy
 
-    player[4].texture.loadFromFile("assets/logy_sheet.png");
     player[4].sprite.setTexture(player[4].texture);
+    player[4].playerFrameIndx = 13;
+    player[4].isProjectileUnlocked = false;
+    player[4].isWhipUnlocked = true;
+    player[4].isRingUnlocked = false;
+    player[4].speed = 170;
+    player[4].position = true;
+    player[4].animationTimer = 0;
+    player[4].level = 1;
+    player[4].isMoving = false;
+    player[4].canAttack = true;
+    player[4].whipDamage = 10;
+    player[4].ringDamage = 5;
+    player[4].whipCooldown = 1.0f;
+    player[4].ProjectileDamage = 15;
+    player[4].projectileCooldown = 2.0f;
+    player[4].playerWidth = 50;
     player[4].playerHeight = 58;
-    player[4].playeFrameIndx = 13;
+    player[4].hitboxWidth = 20;
+    player[4].hitboxHeight = 40;
     player[4].maxHealth = 100;
+    player[4].currentHealth = player[1].maxHealth;
+    player[4].maxXP = 10.0f;
+    player[4].currentXP = 0.0f;
+
+
 
     //Charchter 5 / Maritsia
 
-    player[5].texture.loadFromFile("assets/maritsia_sheet.png");
     player[5].sprite.setTexture(player[5].texture);
+    player[5].playerFrameIndx = 13;
+    player[5].isProjectileUnlocked = false;
+    player[5].isWhipUnlocked = true;
+    player[5].isRingUnlocked = false;
+    player[5].speed = 170;
+    player[5].position = true;
+    player[5].animationTimer = 0;
+    player[5].level = 1;
+    player[5].isMoving = false;
+    player[5].canAttack = true;
+    player[5].whipDamage = 10;
+    player[5].ringDamage = 5;
+    player[5].whipCooldown = 1.0f;
+    player[5].ProjectileDamage = 15;
+    player[5].projectileCooldown = 2.0f;
+    player[5].playerWidth = 50;
     player[5].playerHeight = 56;
-    player[5].playeFrameIndx = 13;
+    player[5].hitboxWidth = 20;
+    player[5].hitboxHeight = 40;
     player[5].maxHealth = 100;
+    player[5].currentHealth = player[1].maxHealth;
+    player[5].maxXP = 10.0f;
+    player[5].currentXP = 0.0f;
+
 
     //Charchter 6 / Yassin
 
-    player[6].texture.loadFromFile("assets/yassin_sheet.png");
     player[6].sprite.setTexture(player[6].texture);
-    player[6].playerHeight = 60;
-    player[6].playerWidth = 32;
-    player[6].playeFrameIndx = 15;
-    player[6].maxHealth = 50;
-    player[6].speed = 300;
+    player[6].playerFrameIndx = 15;
     player[6].isProjectileUnlocked = false;
     player[6].isWhipUnlocked = true;
+    player[6].isRingUnlocked = false;
+    player[6].speed = 300;
+    player[6].position = true;
+    player[6].animationTimer = 0;
+    player[6].level = 1;
+    player[6].isMoving = false;
+    player[6].canAttack = true;
+    player[6].whipDamage = 10;
+    player[6].ringDamage = 5;
+    player[6].whipCooldown = 1.0f;
+    player[6].ProjectileDamage = 15;
+    player[6].projectileCooldown = 2.0f;
+    player[6].playerWidth = 32;
+    player[6].playerHeight = 60;
+    player[6].hitboxWidth = 20;
+    player[6].hitboxHeight = 40;
+    player[6].maxHealth = 50;
+    player[6].currentHealth = player[1].maxHealth;
+    player[6].maxXP = 10.0f;
+    player[6].currentXP = 0.0f;
 
     //Charchter 7 // Marwan
 
-    player[7].texture.loadFromFile("assets/marwan_sheet.png");
+
     player[7].sprite.setTexture(player[7].texture);
-    player[7].playeFrameIndx = 15;
-    player[7].isProjectileUnlocked = true;
-    player[7].isWhipUnlocked = false;
+    player[7].playerFrameIndx = 15;
+    player[7].isProjectileUnlocked = false;
+    player[7].isWhipUnlocked = true;
+    player[7].isRingUnlocked = false;
+    player[7].speed = 230;
+    player[7].position = true;
+    player[7].animationTimer = 0;
+    player[7].level = 1;
+    player[7].isMoving = false;
+    player[7].canAttack = true;
+    player[7].whipDamage = 10;
+    player[7].ringDamage = 5;
+    player[7].whipCooldown = 1.0f;
+    player[7].ProjectileDamage = 15;
+    player[7].projectileCooldown = 2.0f;
+    player[7].playerWidth = 50;
+    player[7].playerHeight = 56;
+    player[7].hitboxWidth = 20;
+    player[7].hitboxHeight = 40;
     player[7].maxHealth = 100;
+    player[7].currentHealth = player[1].maxHealth;
+    player[7].maxXP = 10.0f;
+    player[7].currentXP = 0.0f;
 
 }
 void shopWidgets()
 {
+
     backButton.sprite.setPosition(60, 1080 / 2);
     nextButton.sprite.setPosition(1750, 1080 / 2);
     buyButton.sprite.setPosition(1250, 830);
     selectButton.sprite.setPosition(1250, 830);
+    backtomenuButton.sprite.setPosition(1920 / 1.2 + 100, 1080 / 5 - 50);
+    backtomenuButton.sprite.setScale(1, 1);
+
+    if (gameMode == 0) {
+        menuBG[4].sprite.setTexture(menuBG[4].texture);
+        backtomenuButton.sprite.setTexture(backtomenuButton.texture);
+        backButton.sprite.setTexture(backButton.texture);
+        nextButton.sprite.setTexture(nextButton.texture);
+        buyButton.sprite.setTexture(buyButton.texture);
+        selectButton.sprite.setTexture(selectButton.texture);
+    }
+    else if (gameMode == 1) {
+        menuBG[4].sprite.setTexture(menuBG[4].horrorTexture);
+        backtomenuButton.sprite.setTexture(backtomenuButton.horrorTexture);
+        backButton.sprite.setTexture(backButton.horrorTexture);
+        nextButton.sprite.setTexture(nextButton.horrorTexture);
+        buyButton.sprite.setTexture(buyButton.horrorTexture);
+        selectButton.sprite.setTexture(selectButton.horrorTexture);
+    }
 }
 void backButtonHandler()
 {
@@ -2279,22 +2746,57 @@ void buyButtonHandler()
 }
 void selectButtonHandler()
 {
-    if (player[shopPage].isUnlocked) {
+    if (menu == 2) // shop
+    {
+        if (player[shopPage].isUnlocked) {
+            if (selectButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+            {
+                selectButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+                selectButton.sprite.setColor(sf::Color(200, 200, 200));
+                if (Mouse::isButtonPressed(Mouse::Left)) {
+                    clickSound.play();
+                    character = shopPage;
+                    sleep(milliseconds(200));
+                }
+
+            }
+            else
+            {
+                selectButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+                selectButton.sprite.setColor(Color::White);
+            }
+        }
+    }
+
+    if (menu == 4) { // options
         if (selectButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
         {
+
             selectButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
             selectButton.sprite.setColor(sf::Color(200, 200, 200));
             if (Mouse::isButtonPressed(Mouse::Left)) {
-                clickSound.play();
-                character = shopPage;
-                sleep(milliseconds(200));
+                if (controls == 1) { // from wasd -> arrows
+                    controls = 0;
+                    selectButton.sprite.setPosition(1920 / 1.7, 800);
+                    clickSound.play();
+                    sleep(milliseconds(200));
+                }
+                else if (controls == 0) { // from arrows -> wasd
+                    controls = 1;
+                    selectButton.sprite.setPosition(1920 / 3.45, 800);
+                    clickSound.play();
+                    sleep(milliseconds(200));
+                }
             }
+
         }
         else
         {
             selectButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
             selectButton.sprite.setColor(Color::White);
         }
+
+
     }
 }
 void loadSounds()
@@ -2310,6 +2812,8 @@ void loadSounds()
     bossBuffer.loadFromFile("assets/sounds/boss.mp3");
     coinBuffer.loadFromFile("assets/sounds/coins.mp3");
     levelCompleteBuffer.loadFromFile("assets/sounds/victory.mp3");
+    chestBreakBuffer.loadFromFile("assets/sounds/health_recharge.mp3");
+    potionDrinkBuffer.loadFromFile("assets/sounds/potion_drink.mp3");
 
     clickSound.setBuffer(clickBuffer);
     deathSound.setBuffer(deathBuffer);
@@ -2322,13 +2826,44 @@ void loadSounds()
     bossSound.setBuffer(bossBuffer);
     coinSound.setBuffer(coinBuffer);
     levelCompleteSound.setBuffer(levelCompleteBuffer);
+    chestBreakSound.setBuffer(chestBreakBuffer);
+    potionDrinkSound.setBuffer(potionDrinkBuffer);
 
     backgroundMusic.openFromFile("assets/sounds/background.mp3");
+    normalLevelMusic.openFromFile("assets/sounds/normal_level.mp3");
+    goreModeMusic.openFromFile("assets/sounds/gore_mode.mp3");
+
+    clickSound.setVolume(volume);
+    deathSound.setVolume(volume);
+    gameOverSound.setVolume(volume);
+    footstepsSound.setVolume(volume);
+    enemyAppearSound.setVolume(volume);
+    enemyHitSound.setVolume(volume);
+    playerHitSound.setVolume(volume);
+    healthSound.setVolume(volume);
+    bossSound.setVolume(volume);
+    coinSound.setVolume(volume);
+    levelCompleteSound.setVolume(volume);
+    chestBreakSound.setVolume(volume);
+    potionDrinkSound.setVolume(volume);
+    backgroundMusic.setVolume(volume);
+    normalLevelMusic.setVolume(volume);
+    goreModeMusic.setVolume(volume);
 }
 void playBackgroundMusic()
 {
     backgroundMusic.setLoop(true);
     backgroundMusic.play();
+}
+void playNormalLevelMusic()
+{
+    normalLevelMusic.setLoop(true);
+    normalLevelMusic.play();
+}
+void playGoreLevelMusic()
+{
+    goreModeMusic.setLoop(true);
+    goreModeMusic.play();
 }
 void playFootstepsSound() {
     if (footstepsSound.getStatus() != Sound::Playing) {
@@ -2348,13 +2883,26 @@ void playPlayerHitSound() {
         playerHitSound.play();
     }
 }
-void increaseSpawnRate() {
+void playChestBreakSound() {
+    if (chestBreakSound.getStatus() != Sound::Playing) {
+        chestBreakSound.play();
+    }
+}
+void playPotionDrinkSound() {
+    potionDrinkSound.play();
+}
+void playCoinSound() {
+    if (coinSound.getStatus() != Sound::Playing) {
+        coinSound.play();
+    }
+}
+void setSpawnRate() {
     float timeMinutes = (float)time() / 60.0f;
     float waveTimer = 2; // in minutes
-    SpawnDelay = 1;
+    SpawnDelay = 0.5;
     while (timeMinutes >= waveTimer) {
         timeMinutes -= waveTimer;
-        SpawnDelay *= 0.9;
+        SpawnDelay *= 0.75;
     }
     if (SpawnDelay < MinSpawnDelay) {
         SpawnDelay = MinSpawnDelay;
@@ -2391,7 +2939,7 @@ void ringCollision() {
     for (auto& zombie : Zombies) {
         if (ring.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds())) {
             if (zombie.canBeHit) {
-                zombie.HP -= player[character].whipDamage; // Use whip damage for the ring aashan ana mkasl
+                zombie.HP -= player[character].ringDamage; // Use whip damage for the ring aashan ana mkasl (fuck u)
                 zombie.canBeHit = false;
                 zombie.lastHitTime = 0.0f;
                 zombie.Shape.setColor(Color::Red); // Visual feedback
@@ -2409,4 +2957,1659 @@ void updateRing() {
     ringAnimation(deltaTime);
     ringRotation(deltaTime, playerPos);
     ringCollision();
+}
+void goreMenuInitialization() {
+    yesButton.sprite.setPosition(1920 / 2.5 - 120, 750);
+    noButton.sprite.setPosition(1920 / 1.5 - 120, 750);
+}
+void goreMenuHandler() {
+    if (yesButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        yesButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+        yesButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            bossSound.play();
+            menu = 0;
+            gameMode = 1;
+            menuBG[0].sprite.setTexture(menuBG[0].horrorTexture);
+            mainmenuWidgets();
+            sleep(milliseconds(200));
+        }
+    }
+    else
+    {
+        yesButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+        yesButton.sprite.setColor(Color::White);
+    }
+
+    if (noButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        noButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+        noButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            clickSound.play();
+            menu = 0;
+            mainmenuWidgets();
+            sleep(milliseconds(200));
+        }
+    }
+    else
+    {
+        noButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+        noButton.sprite.setColor(Color::White);
+    }
+}
+void backgroundInitialization() {
+    if (gameMode == 0) { // normal mode
+        background.setTexture(backgroundTexture);
+    }
+    else if (gameMode == 1) { // horror
+        background.setTexture(backgroundHorrorTexture);
+    }
+}
+void drawPowerUpsMenu()
+{
+    window.draw(menuBG[3].sprite);
+    for (int i = 0; i < 3; i++)
+    {
+        window.draw(allUpgrades[upgradesIndices[i]].sprite);
+        window.draw(allUpgrades[upgradesIndices[i]].text);
+        window.draw(currentLevelText[upgradesIndices[i]]);
+        window.draw(descriptionText[upgradesIndices[i]]);
+    }
+}
+void powerUps()
+{
+    static bool wasMousePressed = false;  // Track previous mouse state
+
+    for (int j = 0; j < 3; j++)
+    {
+        int i = upgradesIndices[j];
+
+        allUpgrades[i].sprite.setScale(8, 8);
+
+        // Skip if this upgrade has reached max level
+        if (currentUpgradelvl[i] >= upgradeLevel.upgradeMaxLevel)
+        {
+            continue;
+        }
+        // Check if the mouse is over the upgrade sprite
+        if (allUpgrades[i].sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+        {
+
+            allUpgrades[i].sprite.setScale(7, 7);
+
+            // Check for mouse button release (not press) to ensure one click = one upgrade
+            bool isMousePressed = Mouse::isButtonPressed(Mouse::Left);
+            if (isMousePressed && !wasMousePressed)  // Only trigger on new press
+            {
+                clickSound.play();
+                //cout << "Clicked upgrade index: " << i << endl;
+                switch (i)
+                {
+                case 0:
+                    // Upgrade 0: Increase Max Health
+                    if (upgradeLevel.maxHealthLevel < upgradeLevel.upgradeMaxLevel)
+                    {
+                        //cout << "max before:  " << upgradeLevel.maxHealthLevel << endl;
+                        maxHealthIncrease(10);
+                        upgradeLevel.maxHealthLevel++;
+                        currentUpgradelvl[0] = upgradeLevel.maxHealthLevel;
+                        //cout << "max after:  " << upgradeLevel.maxHealthLevel << endl;
+                    }
+                    break;
+
+                case 1:
+                    // Upgrade 1: Defense upgrade
+                    if (upgradeLevel.defenseUpgradeLevel < upgradeLevel.upgradeMaxLevel)
+                    {
+                        //cout << "defense before:  " << upgradeLevel.defenseUpgradeLevel << endl;
+                        upgradeLevel.defenseUpgradeLevel++;
+                        currentUpgradelvl[1] = upgradeLevel.defenseUpgradeLevel;
+                        //cout << "defense after:  " << upgradeLevel.defenseUpgradeLevel << endl;
+                    }
+                    break;
+
+                case 2:
+                    // Upgrade 2: Upgrade whip
+                    if (upgradeLevel.whipLvlReal < upgradeLevel.upgradeMaxLevel)
+                    {
+                        //cout << "whip before:  " << upgradeLevel.whipLvlReal << endl;
+                        upgradeLevel.whipLvl = 2;
+                        if (upgradeLevel.whipLvlReal > 1)
+                        {
+                            player[character].whipDamage += 30;
+                        }
+                        upgradeLevel.whipLvlReal++;
+                        currentUpgradelvl[2] = upgradeLevel.whipLvlReal;
+                        //cout << "whip after:  " << upgradeLevel.whipLvlReal << endl;
+                    }
+                    break;
+
+                case 3:
+                    // Upgrade 3: Health regeneration
+                    if (upgradeLevel.healingUpgradeLevel < upgradeLevel.upgradeMaxLevel)
+                    {
+                        //cout << "regen before:  " << upgradeLevel.healingUpgradeLevel << endl;
+                        upgradeLevel.healingUpgradeLevel++;
+                        currentUpgradelvl[3] = upgradeLevel.healingUpgradeLevel;
+                        //cout << "regen after:  " << upgradeLevel.healingUpgradeLevel << endl;
+                    }
+                    break;
+
+                case 4:
+                    // Upgrade 4: Unlock second weapon (projectile)
+                    if (upgradeLevel.secondWeaponUpgradeLvl < upgradeLevel.upgradeMaxLevel)
+                    {
+                        //cout << "second before:  " << upgradeLevel.secondWeaponUpgradeLvl << endl;
+                        player[character].isProjectileUnlocked = true;
+                        if (upgradeLevel.secondWeaponUpgradeLvl > 1)
+                        {
+                            player[character].ProjectileDamage += 5;
+                            player[character].projectileCooldown = 2.0 * pow(1.0 - 0.50, upgradeLevel.secondWeaponUpgradeLvl - 1);
+                        }
+                        upgradeLevel.secondWeaponUpgradeLvl++;
+                        currentUpgradelvl[4] = upgradeLevel.secondWeaponUpgradeLvl;
+                        //cout << "second after:  " << upgradeLevel.secondWeaponUpgradeLvl << endl;
+                    }
+                    break;
+
+                case 5:
+                    // Upgrade 5: Increase player speed
+                    if (upgradeLevel.increasePlayerSpeedLevel < upgradeLevel.upgradeMaxLevel)
+                    {
+                        //cout << "speed before:  " << upgradeLevel.increasePlayerSpeedLevel << endl;
+                        increasePlayerSpeed(30);
+                        upgradeLevel.increasePlayerSpeedLevel++;
+                        currentUpgradelvl[5] = upgradeLevel.increasePlayerSpeedLevel;
+                        //cout << "speed after:  " << upgradeLevel.increasePlayerSpeedLevel << endl;
+                    }
+                    break;
+
+                case 6:
+                    // Upgrade 6: Unlock Ring
+                    if (upgradeLevel.ringUpgradeLevel < upgradeLevel.upgradeMaxLevel)
+                    {
+                        //cout << "ring before:  " << upgradeLevel.ringUpgradeLevel << endl;
+                        player[character].isRingUnlocked = true;
+                        if (upgradeLevel.ringUpgradeLevel > 1)
+                        {
+                            ring.rotationSpeed += 100;
+                            player[character].ringDamage += 5;
+                        }
+                        upgradeLevel.ringUpgradeLevel++;
+                        currentUpgradelvl[6] = upgradeLevel.ringUpgradeLevel;
+                        //cout << "ring after:  " << upgradeLevel.ringUpgradeLevel << endl;
+                    }
+                    break;
+                }
+
+                // After any upgrade is clicked, we stop the upgrade screen
+                isUpgrading = false;
+
+                // Prevent checking more upgrades only one can be selected per click
+                break;
+            }
+        }
+    }
+
+    wasMousePressed = Mouse::isButtonPressed(Mouse::Left);  // Update previous mouse state
+}
+void healingUpgrade()
+{
+    float amount = (upgradeLevel.healingUpgradeLevel * 0.5) + 0.5;
+    if (upgradeLevel.healingUpgradeLevel > 0)
+    {
+        heal(amount * deltaTime);
+    }
+}
+void upgradeItemsHandeling()
+{
+    //Origin
+    for (int i = 0; i < UPGRADES_NUM; i++)
+    {
+        allUpgrades[i].sprite.setOrigin(allUpgrades[i].sprite.getLocalBounds().width / 2, allUpgrades[i].sprite.getLocalBounds().height / 2);
+    }
+    if (isMenuOpen)
+    {
+        maxLevelChecker();
+        for (int i = 0; i < 3; i++)
+        {
+            allUpgrades[upgradesIndices[i]].sprite.setPosition((1920 / 2) + offSetX[i], 1080 / 2);
+        }
+        upgradesTextHandeling();
+        upgradeLevelText();
+        upgradeDescriptionHandeling();
+        isMenuOpen = false;
+    }
+}
+void maxHealthIncrease(int addValue)
+{
+    player[character].maxHealth += addValue;
+}
+void increasePlayerSpeed(int value)
+{
+    player[character].speed += value;
+}
+void upgradesMenuText()
+{
+    for (int i = 0; i < UPGRADES_NUM; i++)
+    {
+        allUpgrades[i].font.loadFromFile("assets/Pixel_Game.otf");
+        allUpgrades[i].text.setFont(allUpgrades[i].font);
+        allUpgrades[i].text.setFillColor(Color::Yellow);
+        allUpgrades[i].text.setOutlineColor(Color::Black);
+        allUpgrades[i].text.setOutlineThickness(4);
+    }
+    upgradeItemsName();
+}
+void upgradeItemsName()
+{
+    allUpgrades[0].text.setString("Life Crystal");
+    allUpgrades[1].text.setString("Shield");
+    allUpgrades[2].text.setString("Upgrade whip");
+    allUpgrades[3].text.setString("Vital Essence");
+    allUpgrades[4].text.setString("Second Weapon");
+    allUpgrades[5].text.setString("Falcon Boots");
+    allUpgrades[6].text.setString("Ring of Death");
+}
+void upgradesTextHandeling()
+{
+    allUpgrades[0].text.setPosition(allUpgrades[0].sprite.getPosition().x - 200, allUpgrades[0].sprite.getPosition().y + 270);
+    allUpgrades[0].text.setCharacterSize(85);
+
+    allUpgrades[1].text.setPosition(allUpgrades[1].sprite.getPosition().x - 100, allUpgrades[1].sprite.getPosition().y + 270);
+    allUpgrades[1].text.setCharacterSize(85);
+
+    allUpgrades[2].text.setPosition(allUpgrades[2].sprite.getPosition().x - 210, allUpgrades[2].sprite.getPosition().y + 270);
+    allUpgrades[2].text.setCharacterSize(85);
+
+    allUpgrades[3].text.setPosition(allUpgrades[3].sprite.getPosition().x - 210, allUpgrades[3].sprite.getPosition().y + 270);
+    allUpgrades[3].text.setCharacterSize(85);
+
+    allUpgrades[4].text.setPosition(allUpgrades[4].sprite.getPosition().x - 210, allUpgrades[4].sprite.getPosition().y + 275);
+    allUpgrades[4].text.setCharacterSize(75);
+
+    allUpgrades[5].text.setPosition(allUpgrades[5].sprite.getPosition().x - 210, allUpgrades[5].sprite.getPosition().y + 270);
+    allUpgrades[5].text.setCharacterSize(85);
+
+    allUpgrades[6].text.setPosition(allUpgrades[6].sprite.getPosition().x - 210, allUpgrades[6].sprite.getPosition().y + 270);
+    allUpgrades[6].text.setCharacterSize(85);
+}
+void maxLevelChecker()
+{
+    int validIndex = 0;
+    int validCount = 0;
+    fill(begin(validUpgrades), end(validUpgrades), 0);     //??? Adam
+
+    for (int i = 0; i < UPGRADES_NUM; i++)
+    {
+        if (currentUpgradelvl[i] < upgradeLevel.upgradeMaxLevel)
+        {
+            validUpgrades[validIndex] = i;
+            validIndex++;
+        }
+    }
+    validCount = validIndex;
+    if (validCount == 2)        //could crash
+    {
+        validCount = 3;
+        validUpgrades[2] = rand() % 6;
+        allUpgrades[validUpgrades[2]].sprite.setColor(Color::Black);
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        validIndex = rand() % validCount;
+        upgradesIndices[i] = validUpgrades[validIndex];
+    }
+    while (upgradesIndices[0] == upgradesIndices[1])
+    {
+        validIndex = rand() % validCount;
+        upgradesIndices[1] = validUpgrades[validIndex];
+    }
+    while (upgradesIndices[0] == upgradesIndices[2] || upgradesIndices[1] == upgradesIndices[2])
+    {
+        validIndex = rand() % validCount;
+        upgradesIndices[2] = validUpgrades[validIndex];
+    }
+
+
+
+}
+void upgradeLevelText()
+{
+    for (int i = 0; i < UPGRADES_NUM; i++)
+    {
+        currentLevelText[i].setString("Upgrade Level: " + to_string(currentUpgradelvl[i]));
+        currentLevelText[i].setPosition(allUpgrades[i].sprite.getPosition().x - 210, allUpgrades[i].sprite.getPosition().y - 240);
+    }
+}
+void upgradeDescriptionText()
+{
+    for (int i = 0; i < UPGRADES_NUM; i++)
+    {
+        descriptionText[i].setFont(font);
+        descriptionText[i].setFillColor(Color::Black);
+        descriptionText[i].setOutlineColor(Color::White);
+        descriptionText[i].setOutlineThickness(1);
+    }
+    upgradeDescriptionNames();
+}
+void upgradeDescriptionNames()
+{
+    descriptionText[0].setString("Boosts max health");
+    descriptionText[1].setString("Less damage");
+    descriptionText[2].setString("Dual strike");
+    descriptionText[3].setString("Heal over time");
+    descriptionText[4].setString("Upgrades projectile");
+    descriptionText[5].setString("Increases speed");
+    descriptionText[6].setString("Upgrades ring");
+}
+void upgradeDescriptionHandeling()
+{
+    descriptionText[0].setPosition(allUpgrades[0].sprite.getPosition().x - 210, allUpgrades[0].sprite.getPosition().y + 160);
+    descriptionText[0].setCharacterSize(60);
+
+    descriptionText[1].setPosition(allUpgrades[1].sprite.getPosition().x - 130, allUpgrades[1].sprite.getPosition().y + 160);
+    descriptionText[1].setCharacterSize(60);
+
+    descriptionText[2].setPosition(allUpgrades[2].sprite.getPosition().x - 130, allUpgrades[2].sprite.getPosition().y + 160);
+    descriptionText[2].setCharacterSize(60);
+
+    descriptionText[3].setPosition(allUpgrades[3].sprite.getPosition().x - 160, allUpgrades[3].sprite.getPosition().y + 160);
+    descriptionText[3].setCharacterSize(60);
+
+    descriptionText[4].setPosition(allUpgrades[4].sprite.getPosition().x - 225, allUpgrades[4].sprite.getPosition().y + 160);
+    descriptionText[4].setCharacterSize(60);
+
+    descriptionText[5].setPosition(allUpgrades[5].sprite.getPosition().x - 175, allUpgrades[5].sprite.getPosition().y + 160);
+    descriptionText[5].setCharacterSize(60);
+
+    descriptionText[6].setPosition(allUpgrades[6].sprite.getPosition().x - 145, allUpgrades[6].sprite.getPosition().y + 160);
+    descriptionText[6].setCharacterSize(60);
+}
+void notValidUpgradeRemover() {
+    for (int i = 0; i < UPGRADES_NUM; i++) {
+        if (i != upgradesIndices[0] && i != upgradesIndices[1] && i != upgradesIndices[2]) {
+            allUpgrades[i].sprite.setPosition(0, 0);
+        }
+    }
+
+}
+void optionsWidgets()
+{
+    if (gameMode == 0) {
+        if (backgroundMusic.getVolume() > 0) {
+            volumeButton.sprite.setTexture(volumeButton.texture);
+        }
+        else {
+            volumeButton.sprite.setTexture(volumeButton.secondForm);
+        }
+
+        sliderButton.sprite.setTexture(sliderButton.texture);
+        wasd.setTexture(wasdTexture);
+        arrows.setTexture(arrowsTexture);
+        selectButton.sprite.setTexture(selectButton.texture);
+        menuBG[6].sprite.setTexture(menuBG[6].texture);
+    }
+    else if (gameMode == 1) {
+        if (backgroundMusic.getVolume() > 0) {
+            volumeButton.sprite.setTexture(volumeButton.horrorTexture);
+        }
+        else {
+            volumeButton.sprite.setTexture(volumeButton.horrorSecondForm);
+        }
+
+        sliderButton.sprite.setTexture(sliderButton.horrorTexture);
+        wasd.setTexture(wasdHorrorTexture);
+        arrows.setTexture(arrowsHorrorTexture);
+        selectButton.sprite.setTexture(selectButton.horrorTexture);
+        menuBG[6].sprite.setTexture(menuBG[6].horrorTexture);
+    }
+
+    volumeButton.sprite.setPosition(1920 / 3.4, 320);
+    slider.setPosition(1920 / 2.5, 360);
+    slider.setScale(0.87, 1);
+    sliderButton.sprite.setPosition(1920 / 2.5 + volume * 5, 350);
+    sliderButton.sprite.setScale(2, 2);
+    wasd.setPosition(1920 / 1.8, 500);
+    arrows.setPosition(1920 / 3.8, 500);
+
+    if (controls == 1) {
+        selectButton.sprite.setPosition(1920 / 3.45, 800);
+    }
+    else if (controls == 0) {
+        selectButton.sprite.setPosition(1920 / 1.7, 800);
+    }
+}
+void optionsHandler()
+{
+    // Handle volume button toggle
+    if (volumeButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+    {
+        volumeButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
+        volumeButton.sprite.setColor(sf::Color(200, 200, 200));
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            if (backgroundMusic.getVolume() > 0) {
+                volume = 0;
+                sliderButton.sprite.setPosition(1920 / 2.5, 350);
+                if (gameMode == 0) {
+                    volumeButton.sprite.setTexture(volumeButton.secondForm);
+                }
+                else if (gameMode == 1) {
+                    volumeButton.sprite.setTexture(volumeButton.horrorSecondForm);
+                }
+            }
+            else {
+                volume = 100;
+                sliderButton.sprite.setPosition(1920 / 2.5 + 500, 350);
+                if (gameMode == 0) {
+                    volumeButton.sprite.setTexture(volumeButton.texture);
+                }
+                else if (gameMode == 1) {
+                    volumeButton.sprite.setTexture(volumeButton.horrorTexture);
+                }
+            }
+            clickSound.play();
+            // Update all sound volumes
+            clickSound.setVolume(volume);
+            deathSound.setVolume(volume);
+            gameOverSound.setVolume(volume);
+            footstepsSound.setVolume(volume);
+            enemyAppearSound.setVolume(volume);
+            enemyHitSound.setVolume(volume);
+            playerHitSound.setVolume(volume);
+            healthSound.setVolume(volume);
+            bossSound.setVolume(volume);
+            coinSound.setVolume(volume);
+            levelCompleteSound.setVolume(volume);
+            chestBreakSound.setVolume(volume);
+            potionDrinkSound.setVolume(volume);
+            backgroundMusic.setVolume(volume);
+            normalLevelMusic.setVolume(volume);
+            goreModeMusic.setVolume(volume);
+            sleep(milliseconds(200));
+        }
+    }
+    else
+    {
+        volumeButton.sprite.setTextureRect(IntRect(0, 0, 102, 108));
+        volumeButton.sprite.setColor(Color::White);
+    }
+
+    // Handle slider movement
+    static bool isDragging = false; // Track if the slider is being dragged
+
+    if (sliderButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y) || isDragging)
+    {
+        sliderButton.sprite.setTextureRect(IntRect(0, 16, 15, 16));
+        sliderButton.sprite.setColor(sf::Color(200, 200, 200));
+
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            isDragging = true; // Start dragging
+
+            // Update slider position based on mouse position
+            float mouseX = Mouse::getPosition(window).x;
+            float sliderMinX = 1920 / 2.5; // Minimum slider position
+            float sliderMaxX = 1920 / 2.5 + 500; // Maximum slider position
+
+            // Clamp the slider position within bounds
+            if (mouseX < sliderMinX) mouseX = sliderMinX;
+            if (mouseX > sliderMaxX) mouseX = sliderMaxX;
+
+            sliderButton.sprite.setPosition(mouseX, 350);
+
+            // Calculate volume based on slider position
+            volume = (mouseX - sliderMinX) / 5;
+
+            // Update all sound volumes
+            clickSound.setVolume(volume);
+            deathSound.setVolume(volume);
+            gameOverSound.setVolume(volume);
+            footstepsSound.setVolume(volume);
+            enemyAppearSound.setVolume(volume);
+            enemyHitSound.setVolume(volume);
+            playerHitSound.setVolume(volume);
+            healthSound.setVolume(volume);
+            bossSound.setVolume(volume);
+            coinSound.setVolume(volume);
+            levelCompleteSound.setVolume(volume);
+            chestBreakSound.setVolume(volume);
+            potionDrinkSound.setVolume(volume);
+            backgroundMusic.setVolume(volume);
+            normalLevelMusic.setVolume(volume);
+            goreModeMusic.setVolume(volume);
+
+            // Update volume button texture based on volume
+            if (volume == 0)
+            {
+
+                if (gameMode == 0) {
+                    volumeButton.sprite.setTexture(volumeButton.secondForm);
+                }
+                else if (gameMode == 1) {
+                    volumeButton.sprite.setTexture(volumeButton.horrorSecondForm);
+                }
+            }
+            else
+            {
+
+                if (gameMode == 0) {
+                    volumeButton.sprite.setTexture(volumeButton.texture);
+                }
+                else if (gameMode == 1) {
+                    volumeButton.sprite.setTexture(volumeButton.horrorTexture);
+                }
+            }
+        }
+        else {
+            isDragging = false; // Stop dragging when the mouse button is released
+        }
+    }
+    else
+    {
+        sliderButton.sprite.setTextureRect(IntRect(0, 0, 15, 16));
+        sliderButton.sprite.setColor(Color::White);
+    }
+
+    // Handle WASD/Arrow toggle
+    selectButtonHandler();
+}
+void loadChestAndOrb() {
+    srand(static_cast<unsigned>(time(nullptr)));
+    // Random position chest
+    float x1 = static_cast<float>(rand() % 7680);
+    float y1 = static_cast<float>(rand() % 4320);
+    float x2 = static_cast<float>(rand() % 7680);
+    float y2 = static_cast<float>(rand() % 4320);
+    float x3 = static_cast<float>(rand() % 7680);
+    float y3 = static_cast<float>(rand() % 4320);
+
+    chest1.sprite.setPosition(x1, y1);
+    chest2.sprite.setPosition(x2, y2);
+    chest3.sprite.setPosition(x3, y3);
+    Vector2f chest1position = chest1.sprite.getPosition();
+    Vector2f chest2position = chest2.sprite.getPosition();
+    Vector2f chest3position = chest3.sprite.getPosition();
+    Vector2f potion1position(x1 + 50, y1);
+    Vector2f potion2position(x2 + 50, y2);
+    Vector2f potion3position(x3 + 50, y3);
+    chest1.itemsprite.setPosition(potion1position);
+    chest2.itemsprite.setPosition(potion2position);
+    chest3.itemsprite.setPosition(potion3position);
+}
+void updateChestLogic() {//logy
+    // Break chest
+    // chest 1
+
+    if (!chest1.chestbroken && whipHitbox.getGlobalBounds().intersects(chest1.sprite.getGlobalBounds())) {
+        playChestBreakSound();
+        chest1.chestbroken = true;
+    }
+
+    if (chest1.chestbroken && !chest1.contentcollected) {
+        if (player[character].sprite.getGlobalBounds().intersects(chest1.itemsprite.getGlobalBounds())) {
+            if (chest1.type == health) {
+                playPotionDrinkSound();
+                heal(healthBuff);
+            }
+            else if (chest1.type == coin) {
+                playPotionDrinkSound();
+                coins += 100;
+            }
+            else if (chest1.type == magnet)
+            {
+                playPotionDrinkSound();
+                hasmagnet = true;
+                orbdirection();
+
+            }
+            chest1.contentcollected = true;
+            updateposition1();
+            chest1.chestbroken = false;
+            chest1.contentcollected = false;
+        }
+    }
+
+    // chest 2
+    if (!chest2.chestbroken && whipHitbox.getGlobalBounds().intersects(chest2.sprite.getGlobalBounds())) {
+        playChestBreakSound();
+        chest2.chestbroken = true;
+    }
+
+    if (chest2.chestbroken && !chest2.contentcollected) {
+        if (player[character].sprite.getGlobalBounds().intersects(chest2.itemsprite.getGlobalBounds())) {
+            if (chest2.type == health) {
+                playPotionDrinkSound();
+                heal(healthBuff);
+
+            }
+            else if (chest2.type == coin) {
+                playPotionDrinkSound();
+                coins += 100;
+            }
+            else if (chest2.type == magnet)
+            {
+                playPotionDrinkSound();
+                hasmagnet = true;
+                orbdirection();
+            }
+
+            chest2.contentcollected = true;
+            updateposition2();
+            chest2.chestbroken = false;
+            chest2.contentcollected = false;
+        }
+    }
+
+    // chest 3 
+    if (!chest3.chestbroken && whipHitbox.getGlobalBounds().intersects(chest3.sprite.getGlobalBounds())) {
+        playChestBreakSound();
+        chest3.chestbroken = true;
+    }
+
+    if (chest3.chestbroken && !chest3.contentcollected) {
+        if (player[character].sprite.getGlobalBounds().intersects(chest3.itemsprite.getGlobalBounds())) {
+            if (chest3.type == health) {
+                playPotionDrinkSound();
+                heal(healthBuff);
+            }
+            else if (chest3.type == coin) {
+                playPotionDrinkSound();
+                coins += 10;
+            }
+            else if (chest3.type == magnet)
+            {
+                playPotionDrinkSound();
+                hasmagnet = true;
+                orbdirection();
+            }
+
+            chest3.contentcollected = true;
+            updateposition3();
+            chest3.chestbroken = false;
+            chest3.contentcollected = false;
+        }
+    }
+}
+void coinAnimation() {
+    coinAnimationTimer += deltaTime;
+
+
+
+    if (coinAnimationTimer >= COIN_ANIMATION_RATE)
+    {
+        coinAnimationTimer = 0;
+        coinIndx = (coinIndx + 1) % 8;
+    }
+    chest2.itemsprite.setTextureRect(IntRect(0, coinIndx * 18, 12, 18));
+}
+void updateposition1() //logy
+{
+
+    float x1 = static_cast<float>(rand() % 7680);
+    float y1 = static_cast<float>(rand() % 4320);
+    chest1.sprite.setPosition(x1, y1);
+    Vector2f chest1position = chest1.sprite.getPosition();
+    Vector2f potion1position(x1 + 50, y1);
+    chest1.itemsprite.setPosition(potion1position);
+}
+void updateposition2()
+{
+    float x2 = static_cast<float>(rand() % 7680);
+    float y2 = static_cast<float>(rand() % 4320);
+    chest2.sprite.setPosition(x2, y2);
+    Vector2f chest2position = chest2.sprite.getPosition();
+    Vector2f potion2position(x2 + 50, y2);
+    chest2.itemsprite.setPosition(potion2position);
+
+}
+void updateposition3()
+{
+    float x3 = static_cast<float>(rand() % 7680);
+    float y3 = static_cast<float>(rand() % 4320);
+    chest3.sprite.setPosition(x3, y3);
+    Vector2f chest3position = chest3.sprite.getPosition();
+    Vector2f potion3position(x3 + 50, y3);
+    chest3.itemsprite.setPosition(potion3position);
+
+}
+void orbdirection()
+{
+    if (hasmagnet) {
+        for (int i = 0; i < xpOrbs.size(); i++)
+        {
+            xpOrbs[i].sprite.setPosition(player[character].sprite.getPosition());
+        }
+    }
+}
+void fontStatsInitalizer()
+{
+
+    playerSpeedStats.setFont(font);
+    playerHealthStats.setFont(font);
+    whipDmgStats.setFont(font);
+    ringBaseDmgStats.setFont(font);
+    whipCooldownStats.setFont(font);
+    projectileDmgStats.setFont(font);
+    projectileCooldownStats.setFont(font);
+    playerStartingWeapon.setFont(font);
+
+}
+void DefaultPlayerStats()
+{
+    if (menu == 2 && shopPage == 0)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[0].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[0].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[0].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[0].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[0].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[0].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[0].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[0].isWhipUnlocked ? "Whip" : "Pistol"));
+        window.draw(playerStartingWeapon);
+    }
+}
+void playerOneStats()
+{
+    if (menu == 2 && shopPage == 1)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[1].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[1].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[1].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[1].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[1].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[1].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[1].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[1].isWhipUnlocked ? "Whip" : "Pistol"));
+        window.draw(playerStartingWeapon);
+    }
+}
+void playerTwoStats()
+{
+    if (menu == 2 && shopPage == 2)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[2].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[2].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[2].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[2].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[2].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[2].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[2].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[2].isWhipUnlocked ? "Whip" : "Pistol"));
+        window.draw(playerStartingWeapon);
+    }
+}
+void playerThreeStats()
+{
+    if (menu == 2 && shopPage == 3)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[3].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[3].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[3].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[3].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[3].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[3].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[3].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[3].isWhipUnlocked ? "Whip" : "Pistol"));
+        window.draw(playerStartingWeapon);
+    }
+}
+void playerFourStats()
+{
+    if (menu == 2 && shopPage == 4)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[4].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[4].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[4].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[4].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[4].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[4].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[4].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[4].isWhipUnlocked ? "Whip" : "Pistol"));
+    }
+    window.draw(playerStartingWeapon);
+}
+void playerFiveStats()
+{
+    if (menu == 2 && shopPage == 5)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[5].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[5].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[5].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[5].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[5].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[5].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[5].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[5].isWhipUnlocked ? "Whip" : "Pistol"));
+        window.draw(playerStartingWeapon);
+    }
+}
+void playerSixStats()
+{
+    if (menu == 2 && shopPage == 6)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[6].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[6].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[6].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[6].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[6].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[6].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[6].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[6].isWhipUnlocked ? "Whip" : "Pistol"));
+        window.draw(playerStartingWeapon);
+    }
+}
+void playerSevenStats()
+{
+    if (menu == 2 && shopPage == 7)
+    {
+        //Speed
+        playerSpeedStats.setCharacterSize(35);
+        playerSpeedStats.setFillColor(Color::White);
+        playerSpeedStats.setPosition(1100, 300);
+        playerSpeedStats.setString("Speed: ");
+        window.draw(playerSpeedStats);
+        playerSpeedStats.setFillColor(Color(255, 165, 0));
+        playerSpeedStats.setPosition(1450, 300);
+        playerSpeedStats.setString(to_string((int)player[7].speed));
+        window.draw(playerSpeedStats);
+
+        //Health
+        playerHealthStats.setCharacterSize(35);
+        playerHealthStats.setFillColor(Color::White);
+        playerHealthStats.setPosition(1100, 350);
+        playerHealthStats.setString("Health: ");
+        window.draw(playerHealthStats);
+        playerHealthStats.setFillColor(Color(255, 165, 0));
+        playerHealthStats.setPosition(1450, 350);
+        playerHealthStats.setString(to_string((int)player[7].maxHealth));
+        window.draw(playerHealthStats);
+
+        //Whip dmg
+        whipDmgStats.setCharacterSize(35);
+        whipDmgStats.setFillColor(Color::White);
+        whipDmgStats.setPosition(1100, 400);
+        whipDmgStats.setString("Whip Damage: ");
+        window.draw(whipDmgStats);
+        whipDmgStats.setFillColor(Color(255, 165, 0));
+        whipDmgStats.setPosition(1450, 400);
+        whipDmgStats.setString(to_string((int)player[7].whipDamage));
+        window.draw(whipDmgStats);
+
+        //Whip Cooldown
+        whipCooldownStats.setCharacterSize(35);
+        whipCooldownStats.setFillColor(Color::White);
+        whipCooldownStats.setPosition(1100, 450);
+        whipCooldownStats.setString("Whip Cooldown: ");
+        window.draw(whipCooldownStats);
+        whipCooldownStats.setFillColor(Color(255, 165, 0));
+        whipCooldownStats.setPosition(1450, 450);
+        whipCooldownStats.setString(to_string((int)player[7].whipCooldown));
+        window.draw(whipCooldownStats);
+
+        //Ring dmg
+        ringBaseDmgStats.setCharacterSize(35);
+        ringBaseDmgStats.setFillColor(Color::White);
+        ringBaseDmgStats.setPosition(1100, 500);
+        ringBaseDmgStats.setString("Ring Damage: ");
+        window.draw(ringBaseDmgStats);
+        ringBaseDmgStats.setFillColor(Color(255, 165, 0));
+        ringBaseDmgStats.setPosition(1450, 500);
+        ringBaseDmgStats.setString(to_string((int)player[7].ringDamage));
+        window.draw(ringBaseDmgStats);
+
+        //Projectile Dmg
+        projectileDmgStats.setCharacterSize(35);
+        projectileDmgStats.setFillColor(Color::White);
+        projectileDmgStats.setPosition(1100, 550);
+        projectileDmgStats.setString("Projectile Damage: ");
+        window.draw(projectileDmgStats);
+        projectileDmgStats.setFillColor(Color(255, 165, 0));
+        projectileDmgStats.setPosition(1450, 550);
+        projectileDmgStats.setString(to_string((int)player[7].ProjectileDamage));
+        window.draw(projectileDmgStats);
+
+        //Projectile Cooldown
+        projectileCooldownStats.setCharacterSize(35);
+        projectileCooldownStats.setFillColor(Color::White);
+        projectileCooldownStats.setPosition(1100, 600);
+        projectileCooldownStats.setString("Projectile Cooldown: ");
+        window.draw(projectileCooldownStats);
+        projectileCooldownStats.setFillColor(Color(255, 165, 0));
+        projectileCooldownStats.setPosition(1450, 600);
+        projectileCooldownStats.setString(to_string((int)player[7].projectileCooldown));
+        window.draw(projectileCooldownStats);
+
+        //Starting Weapon
+        playerStartingWeapon.setCharacterSize(35);
+        playerStartingWeapon.setFillColor(Color::White);
+        playerStartingWeapon.setPosition(1100, 650);
+        playerStartingWeapon.setString("Starting Weapon: ");
+        window.draw(playerStartingWeapon);
+        playerStartingWeapon.setFillColor(Color(255, 165, 0));
+        playerStartingWeapon.setPosition(1450, 650);
+        playerStartingWeapon.setString(string(player[7].isWhipUnlocked ? "Whip" : "Pistol"));
+        window.draw(playerStartingWeapon);
+    }
+}
+void saveGameData() {
+    ofstream saveFile("save.dat");
+    if (saveFile.is_open()) {
+        // Save coins
+        saveFile << coins << " ";
+
+        // Save unlocked status for each character
+        for (int i = 0; i < 8; i++) {
+            saveFile << player[i].isUnlocked << " ";
+        }
+        saveFile << character << " ";
+        saveFile << volume << " ";
+        saveFile << controls << "\n";
+
+        for (int i = 0; i < 10; i++) {
+            saveFile << highscores[i].name << "\t";
+            saveFile << highscores[i].score << "\t";
+            saveFile << highscores[i].time << "\n";
+        }
+
+        saveFile.close();
+    }
+}
+void loadGameData() {
+    ifstream saveFile("save.dat");
+    if (saveFile.is_open()) {
+        // Load coins
+        saveFile >> coins;
+
+        // Load unlocked status for each character
+        for (int i = 0; i < 8; i++) {
+            bool unlocked;
+            saveFile >> unlocked;
+            player[i].isUnlocked = unlocked;
+        }
+
+        saveFile >> character;
+        saveFile >> volume;
+        saveFile >> controls;
+
+
+        for (int i = 0; i < 10; i++) {
+            saveFile >> highscores[i].name;
+            saveFile >> highscores[i].score;
+            saveFile >> highscores[i].time;
+        }
+        saveFile.close();
+    }
+}
+void leaderboardWidgets() {
+
+
+    if (gameMode == 0) {
+        menuBG[7].sprite.setTexture(menuBG[7].texture);
+    }
+    else if (gameMode == 1) {
+        menuBG[7].sprite.setTexture(menuBG[7].horrorTexture);
+    }
+
+    backtomenuButton.sprite.setPosition(1920 / 1.2 + 100, 1080 / 5 - 50);
+    backtomenuButton.sprite.setScale(1, 1);
+    leaderboardSort();
+
+    for (int i = 0; i < 10; i++) {
+        leaderboardNames[i].setFont(font);
+        leaderboardNames[i].setString(highscores[i].name);
+        leaderboardNames[i].setCharacterSize(50);
+        leaderboardNames[i].setFillColor(Color(205, 145, 43));
+        leaderboardNames[i].setOutlineColor(Color::Black);
+        leaderboardNames[i].setOutlineThickness(2);
+        leaderboardNames[i].setPosition(350, 360 + 60 * i);
+
+        leaderboardScores[i].setFont(font);
+        leaderboardScores[i].setString(scoreFormatHandler(highscores[i].score));
+        leaderboardScores[i].setCharacterSize(50);
+        leaderboardScores[i].setFillColor(Color(205, 145, 43));
+        leaderboardScores[i].setOutlineColor(Color::Black);
+        leaderboardScores[i].setOutlineThickness(2);
+        leaderboardScores[i].setPosition(910, 360 + 60 * i);
+
+        leaderboardTimes[i].setFont(font);
+        leaderboardTimes[i].setString(timerFormatHandler(highscores[i].time));
+        leaderboardTimes[i].setCharacterSize(50);
+        leaderboardTimes[i].setFillColor(Color(205, 145, 43));
+        leaderboardTimes[i].setOutlineColor(Color::Black);
+        leaderboardTimes[i].setOutlineThickness(2);
+        leaderboardTimes[i].setPosition(1340, 360 + 60 * i);
+    }
+}
+void leaderboardSort() {
+    for (int i = 0; i < 9; i++) {
+        int maxIndex = i;
+        for (int j = i + 1; j < 10; j++) {
+            if (highscores[j].score > highscores[maxIndex].score) {
+                maxIndex = j;
+            }
+        }
+        // Swap the found maximum element with the first element
+        Score temp = highscores[i];
+        highscores[i] = highscores[maxIndex];
+        highscores[maxIndex] = temp;
+    }
+
+    // find minimum to replace it with the score if we get something higher (to shift scores)
+}
+void leaderboardHandler() {
+
+}
+void nameWidgets() {
+
+
+    if (gameMode == 0) {
+        menuBG[8].sprite.setTexture(menuBG[8].texture);
+        doneButton.sprite.setTexture(doneButton.texture);
+    }
+    else if (gameMode == 1) {
+        menuBG[8].sprite.setTexture(menuBG[8].horrorTexture);
+        doneButton.sprite.setTexture(doneButton.horrorTexture);
+    }
+
+    player[character].sprite.setScale(5, 5);
+    player[character].sprite.setPosition(1920 / 2, 1080 / 3);
+    player[character].sprite.setColor(Color::White);
+
+    doneButton.sprite.setPosition(1920 / 2 - 222, 1080 / 1.8);
+    doneButton.sprite.setScale(2, 2);
+
+    currentName.setPosition(400, 880);
+    currentName.setFillColor(Color::Black);
+    currentName.setCharacterSize(100);
+    current.name = "";
+}
+void nameHandler(Event event) {
+    if (menu == 6) {
+        if (doneButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+        {
+            doneButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
+            doneButton.sprite.setColor(sf::Color(200, 200, 200));
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                clickSound.play();
+                sleep(milliseconds(200));
+                menu = 1;
+                backgroundMusic.pause();
+                if (gameMode == 0) {
+                    playNormalLevelMusic();
+                }
+                else if (gameMode == 1) {
+                    playGoreLevelMusic();
+                }
+                //RESETING
+                resetGame();
+            }
+        }
+        else
+        {
+            doneButton.sprite.setTextureRect(IntRect(0, 0, 222, 108));
+            doneButton.sprite.setColor(Color::White);
+        }
+
+        // Text entered
+        if (event.type == sf::Event::TextEntered) {
+            if (event.text.unicode == '\b') {
+                if (!current.name.empty())
+                    current.name.pop_back();
+            }
+            else if (current.name.size() < 21 && event.text.unicode < 128) {
+                current.name += static_cast<char>(event.text.unicode);
+            }
+        }
+        currentName.setString(current.name);
+    }
+
 }
