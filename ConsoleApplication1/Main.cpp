@@ -67,7 +67,7 @@ int healthBuff = 40;
 bool contentcollected = false;
 bool hasmagnet = false;
 
-sf::RenderWindow window(sf::VideoMode(1920, 1080), "Survival@Uni-Verse", Style::Fullscreen);
+RenderWindow window(VideoMode(1920, 1080), "Survival@Uni-Verse", Style::Fullscreen);
 Font font;
 Clock timerClock;
 Time totalPausedTime = Time::Zero;
@@ -191,7 +191,6 @@ void backgroundInitialization();            // Aly
 void optionsWidgets();                      // Aly
 void optionsHandler();                      // Aly
 void leaderboardWidgets();                  // Aly
-void leaderboardHandler();                  // Aly
 void nameWidgets();                         // Aly
 void nameHandler(Event event);              // Aly
 void notValidUpgradeRemover();              // Aly
@@ -683,7 +682,7 @@ int main()
         while (window.pollEvent(event))
         {
             nameHandler(event);
-            if (event.type == sf::Event::Closed)
+            if (event.type == Event::Closed)
                 window.close();
         }
         Update();
@@ -884,7 +883,6 @@ void Update()
     }
     else if (menu == 5) {
         backtomenuButtonHandler();
-        leaderboardHandler();
     }
     else if (menu == 6) {
         player[character].playerShopAnimation();
@@ -1129,7 +1127,7 @@ void loadTextures()
     menuBG[4].texture.loadFromFile("assets/shop_background.png");
     menuBG[4].horrorTexture.loadFromFile("assets/goreshop_background.png");
     menuBG[4].sprite.setTexture(menuBG[4].texture);
-    menuBG[5].horrorTexture.loadFromFile("assets/gorealert_background.png");
+    menuBG[5].texture.loadFromFile("assets/gorealert_background.png");
     menuBG[5].sprite.setTexture(menuBG[5].texture);
     menuBG[6].texture.loadFromFile("assets/options_background.png");
     menuBG[6].horrorTexture.loadFromFile("assets/goreoptions_background.png");
@@ -1228,7 +1226,7 @@ void BorderCollision()
 
     FloatRect playerBounds = player[character].sprite.getGlobalBounds();
 
-    // Calculate min and F allowed positions.
+    // Calculate min and max allowed positions.
     float halfWidth = playerBounds.width / 2;
     float halfHeight = playerBounds.height / 2;
 
@@ -1243,7 +1241,7 @@ void BorderCollision()
     if (pos.y < minY) pos.y = minY;
     if (pos.y > maxY) pos.y = maxY;
 
-    // Update the player's position.
+    // Update the player position.
     player[character].sprite.setPosition(pos);
 }
 void lockViewToBackground()
@@ -1275,10 +1273,7 @@ void lockViewToBackground()
 }
 void whipAnimation()
 {
-    // Update cooldown timer
     whipCooldownTimer += deltaTime;
-
-    // Only animate if cooldown has passed
     if (whipCooldownTimer < player[character].whipCooldown)
         return;
 
@@ -1292,7 +1287,7 @@ void whipAnimation()
 
         whip.setTextureRect(IntRect(0, whipIndx * 99, 405, 99));
 
-        // Set position per frame
+        // Set position
         if (whip.getScale() == Vector2f(-1, 1)) { // Right
             playPlayerHitSound();
             whip.setPosition(player[character].sprite.getPosition().x + 250, player[character].sprite.getPosition().y - 50);
@@ -1377,7 +1372,7 @@ void healthBarHandling()
     healthBarBackground.setPosition(playerPos.x, playerPos.y + 34);
     healthBarFill.setPosition(playerPos.x, playerPos.y + 34);
 
-    // Update health bar fill based on current health
+    // Update health bar fill
     float healthPercentage = player[character].currentHealth / player[character].maxHealth;
     Vector2f newSize = healthBarFill.getSize();
     newSize.x = healthBarBackground.getSize().x * healthPercentage;
@@ -1392,7 +1387,7 @@ void healthBarHandling()
 }//Yassin Amr
 void addXp(float xpToAdd)
 {
-    // Add XP from orb collection
+    // Add XP from orb
     player[character].currentXP += xpToAdd;
     if (player[character].currentXP > player[character].maxXP)
     {
@@ -1412,12 +1407,13 @@ void addXp(float xpToAdd)
 }//Yassin Amr
 void takeDamage(float damage)
 {
+    player[character].currentHealth -= damage;
     float reduction = 0.10 * upgradeLevel.defenseUpgradeLevel;
     player[character].currentHealth -= damage * (1.0 - reduction);
     playEnemyHitSound();
     if (player[character].currentHealth < 0)
         player[character].currentHealth = 0;
-}
+}//Yassin Amr
 void heal(float amount)
 {
     player[character].currentHealth += amount;
@@ -1513,7 +1509,7 @@ void mainMenuButtons() {
     if (playButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         playButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-        playButton.sprite.setColor(sf::Color(200, 200, 200));
+        playButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             menu = 6;
@@ -1531,7 +1527,7 @@ void mainMenuButtons() {
     if (shopButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         shopButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-        shopButton.sprite.setColor(sf::Color(200, 200, 200));
+        shopButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             coinsText.setPosition(200, 50);
@@ -1558,7 +1554,7 @@ void mainMenuButtons() {
     if (optionsButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         optionsButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-        optionsButton.sprite.setColor(sf::Color(200, 200, 200));
+        optionsButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             sleep(milliseconds(200));
@@ -1582,7 +1578,7 @@ void mainMenuButtons() {
     if (quitButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         quitButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-        quitButton.sprite.setColor(sf::Color(200, 200, 200));
+        quitButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             sleep(milliseconds(200));
@@ -1598,7 +1594,7 @@ void mainMenuButtons() {
     if (modeChangeButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         modeChangeButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-        modeChangeButton.sprite.setColor(sf::Color(200, 200, 200));
+        modeChangeButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             if (gameMode == 0) {
                 menu = 3;
@@ -1620,7 +1616,7 @@ void mainMenuButtons() {
     if (leaderboardButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         leaderboardButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-        leaderboardButton.sprite.setColor(sf::Color(200, 200, 200));
+        leaderboardButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             menu = 5;
             clickSound.play();
@@ -1654,18 +1650,17 @@ Vector2f getDirectionToNearestZombie() {
 
     // Calculate direction to nearest zombie
     Vector2f direction = nearestZombiePos - player[character].sprite.getPosition();
-    return Normalize(direction);  // Use the existing Normalize function
+    return Normalize(direction);
 }
 void createProjectile()
 {
     if (projectileTimer >= PROJECTILE_COOLDOWN && !projectile.active && !Zombies.empty())
     {
-        projectileTimer = 0;  // Reset timer
+        projectileTimer = 0;
         projectile.sprite.setOrigin(projectile.sprite.getLocalBounds().width / 2, projectile.sprite.getLocalBounds().height / 2);
         projectile.sprite.setPosition(player[character].sprite.getPosition());
         projectile.active = true;
 
-        // Get direction to nearest zombie
         projectile.direction = getDirectionToNearestZombie();
         projectile.speed = PROJECTILE_SPEED;
     }
@@ -1690,10 +1685,10 @@ void updateProjectile()
 
                 // Apply bleed effect
                 zombie.Shape.setColor(Color::Red);
-                zombie.canBeHit = false;  // Mark zombie as hit
-                zombie.lastHitTime = 0.0f;  // Reset hit timer
+                zombie.canBeHit = false; 
+                zombie.lastHitTime = 0.0f; 
 
-                break;  // Exit loop once we hit a zombie
+                break; 
             }
         }
 
@@ -1708,7 +1703,7 @@ void updateProjectile()
 
     // Reset zombie color after bleed effect duration
     for (auto& zombie : Zombies) {
-        if (zombie.lastHitTime > 0.15f) {  // 0.15 seconds bleed effect duration
+        if (zombie.lastHitTime > 0.15f) { 
             zombie.Shape.setColor(Color::White);
         }
     }
@@ -1842,7 +1837,7 @@ void pauseButtonHandler() {
     if (pauseButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         pauseButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-        pauseButton.sprite.setColor(sf::Color(200, 200, 200));
+        pauseButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left) && isPaused == 0) {
             clickSound.play();
             logo.setPosition(1920 / 2.8, 1080 / 2);
@@ -1873,7 +1868,7 @@ void pauseMenu() {
     if (backtogameButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         backtogameButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
-        backtogameButton.sprite.setColor(sf::Color(200, 200, 200));
+        backtogameButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             isPaused = 0;
@@ -1892,7 +1887,7 @@ void backtomenuButtonHandler() {
     if (backtomenuButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         backtomenuButton.sprite.setTextureRect(IntRect(0, 108, 330, 108));
-        backtomenuButton.sprite.setColor(sf::Color(200, 200, 200));
+        backtomenuButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
 
             if (menu == 1) { // logic that happens only if we back to menu from game
@@ -1900,10 +1895,9 @@ void backtomenuButtonHandler() {
                 goreModeMusic.pause();
                 normalLevelMusic.pause();
 
-                if (zombiesKilled > highscores[9].score) {
+                if (time() > highscores[9].time) {
                     highscores[9].score = zombiesKilled;
                     highscores[9].time = time();
-
                     if (current.name == "") {
                         highscores[9].name = "Anonymous";
                     }
@@ -2223,7 +2217,7 @@ string timerFormatHandler(int time) {
         formattedTime += "0";
     }
 
-    formattedTime += std::to_string(seconds);
+    formattedTime += to_string(seconds);
 
     return formattedTime;
 }
@@ -2294,7 +2288,6 @@ void resetGame() {
 }
 void whipDmg()
 {
-    // Only process damage if whip is in attack animation (not at idle frame)
     if (whipIndx != 12)
     {
         for (auto& zombie : Zombies)
@@ -2302,12 +2295,12 @@ void whipDmg()
             // Check if zombie can be hit and if whip hitbox intersects with zombie
             if (zombie.canBeHit && whipHitbox.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds()))
             {
-                // Apply damage
+        
                 zombie.Shape.setColor(Color::Red);
                 zombie.HP -= player[character].whipDamage;
-                zombie.canBeHit = false;  // Mark zombie as hit
-                zombie.lastHitTime = 0.0f;  // Reset hit timer
-                break;  // Exit loop after hitting one zombie
+                zombie.canBeHit = false;  
+                zombie.lastHitTime = 0.0f;  
+                break;  
             }
 
             if (zombie.lastHitTime > 0.15) {
@@ -2354,7 +2347,7 @@ void createXPOrb(Vector2f position, float xpValue) {
 void updateXPOrbs() {
     for (int i = 0; i < xpOrbs.size(); i++) {
         if (xpOrbs[i].sprite.getGlobalBounds().intersects(player[character].sprite.getGlobalBounds())) {
-            addXp(xpOrbs[i].xpValue); // Add the XP value of the orb
+            addXp(xpOrbs[i].xpValue);
             xpOrbs.erase(xpOrbs.begin() + i);
         }
     }
@@ -2379,7 +2372,7 @@ void gameoverMenu() {
     leaderboardSort();
 
     // compare with lowest score and if higher replace it with current
-    if (zombiesKilled > highscores[9].score) {
+    if (time() > highscores[9].time) {
         highscores[9].score = zombiesKilled;
         highscores[9].time = time();
         if (current.name == "") {
@@ -2474,7 +2467,7 @@ void charachterInitalization()
     player[1].playerHeight = 56;
     player[1].hitboxWidth = 20;
     player[1].hitboxHeight = 40;
-    player[1].maxHealth = 500;
+    player[1].maxHealth = 300;
     player[1].currentHealth = player[1].maxHealth;
     player[1].maxXP = 10.0f;
     player[1].currentXP = 0.0f;
@@ -2489,7 +2482,7 @@ void charachterInitalization()
     player[2].isProjectileUnlocked = false;
     player[2].isWhipUnlocked = true;
     player[2].isRingUnlocked = false;
-    player[2].speed = 230;
+    player[2].speed = 260;
     player[2].position = true;
     player[2].animationTimer = 0;
     player[2].level = 1;
@@ -2527,7 +2520,7 @@ void charachterInitalization()
     player[3].canAttack = true;
     player[3].whipDamage = 20;
     player[3].ringDamage = 5;
-    player[3].whipCooldown = 0.5f;
+    player[3].whipCooldown = 1.0f;
     player[3].ProjectileDamage = 15;
     player[3].projectileCooldown = 2.0f;
     player[3].playerWidth = 50;
@@ -2548,7 +2541,7 @@ void charachterInitalization()
     player[4].isProjectileUnlocked = false;
     player[4].isWhipUnlocked = true;
     player[4].isRingUnlocked = false;
-    player[4].speed = 170;
+    player[4].speed = 250;
     player[4].position = true;
     player[4].animationTimer = 0;
     player[4].level = 1;
@@ -2577,7 +2570,7 @@ void charachterInitalization()
     player[5].isProjectileUnlocked = false;
     player[5].isWhipUnlocked = true;
     player[5].isRingUnlocked = false;
-    player[5].speed = 170;
+    player[5].speed = 250;
     player[5].position = true;
     player[5].animationTimer = 0;
     player[5].level = 1;
@@ -2686,7 +2679,7 @@ void backButtonHandler()
     if (backButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         backButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-        backButton.sprite.setColor(sf::Color(200, 200, 200));
+        backButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left) && shopPage > 0) {
             clickSound.play();
             shopPage--;
@@ -2705,7 +2698,7 @@ void nextButtonHandler()
     if (nextButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         nextButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-        nextButton.sprite.setColor(sf::Color(200, 200, 200));
+        nextButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left) && shopPage < 7) {
             clickSound.play();
             shopPage++;
@@ -2724,7 +2717,7 @@ void buyButtonHandler()
         if (buyButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
         {
             buyButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-            buyButton.sprite.setColor(sf::Color(200, 200, 200));
+            buyButton.sprite.setColor(Color(200, 200, 200));
             if (Mouse::isButtonPressed(Mouse::Left)) {
                 coinSound.play();
                 coins -= 500;
@@ -2752,7 +2745,7 @@ void selectButtonHandler()
             if (selectButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
             {
                 selectButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-                selectButton.sprite.setColor(sf::Color(200, 200, 200));
+                selectButton.sprite.setColor(Color(200, 200, 200));
                 if (Mouse::isButtonPressed(Mouse::Left)) {
                     clickSound.play();
                     character = shopPage;
@@ -2773,7 +2766,7 @@ void selectButtonHandler()
         {
 
             selectButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-            selectButton.sprite.setColor(sf::Color(200, 200, 200));
+            selectButton.sprite.setColor(Color(200, 200, 200));
             if (Mouse::isButtonPressed(Mouse::Left)) {
                 if (controls == 1) { // from wasd -> arrows
                     controls = 0;
@@ -2916,7 +2909,7 @@ void ringInitialization() {
 }
 void ringAnimation(float deltaTime) {
     ring.animationTimer += deltaTime;
-    if (ring.animationTimer >= 0.1f) { // Switch frame every 0.1 seconds
+    if (ring.animationTimer >= 0.1f) {
         ring.animationTimer = 0.0f;
         ring.frameIndex = (ring.frameIndex + 1) % 4; // 4 frames in the sprite sheet
         ring.sprite.setTextureRect(IntRect(0, ring.frameIndex * 68, 68, 68));
@@ -2939,21 +2932,21 @@ void ringCollision() {
     for (auto& zombie : Zombies) {
         if (ring.sprite.getGlobalBounds().intersects(zombie.Shape.getGlobalBounds())) {
             if (zombie.canBeHit) {
-                zombie.HP -= player[character].ringDamage; // Use whip damage for the ring aashan ana mkasl (fuck u)
+                zombie.HP -= player[character].ringDamage; 
                 zombie.canBeHit = false;
                 zombie.lastHitTime = 0.0f;
-                zombie.Shape.setColor(Color::Red); // Visual feedback
+                zombie.Shape.setColor(Color::Red);
             }
         }
     }
 }
 void updateRing() {
     if (!player[character].isRingUnlocked)
-        return; // Only update if the ring is unlocked for the current character
+        return; 
 
     Vector2f playerPos = player[character].sprite.getPosition();
 
-    // Update ring components
+    // Update ring 
     ringAnimation(deltaTime);
     ringRotation(deltaTime, playerPos);
     ringCollision();
@@ -2966,7 +2959,7 @@ void goreMenuHandler() {
     if (yesButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         yesButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-        yesButton.sprite.setColor(sf::Color(200, 200, 200));
+        yesButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             bossSound.play();
             menu = 0;
@@ -2985,7 +2978,7 @@ void goreMenuHandler() {
     if (noButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         noButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-        noButton.sprite.setColor(sf::Color(200, 200, 200));
+        noButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             clickSound.play();
             menu = 0;
@@ -3018,7 +3011,7 @@ void drawPowerUpsMenu()
         window.draw(descriptionText[upgradesIndices[i]]);
     }
 }
-void powerUps()
+void powerUps() 
 {
     static bool wasMousePressed = false;  // Track previous mouse state
 
@@ -3033,15 +3026,15 @@ void powerUps()
         {
             continue;
         }
-        // Check if the mouse is over the upgrade sprite
+        
         if (allUpgrades[i].sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
         {
 
             allUpgrades[i].sprite.setScale(7, 7);
 
-            // Check for mouse button release (not press) to ensure one click = one upgrade
+           
             bool isMousePressed = Mouse::isButtonPressed(Mouse::Left);
-            if (isMousePressed && !wasMousePressed)  // Only trigger on new press
+            if (isMousePressed && !wasMousePressed)  
             {
                 clickSound.play();
                 //cout << "Clicked upgrade index: " << i << endl;
@@ -3144,16 +3137,15 @@ void powerUps()
                     break;
                 }
 
-                // After any upgrade is clicked, we stop the upgrade screen
-                isUpgrading = false;
+               
+                isUpgrading = false;            //by2fel el upgrade menu
 
-                // Prevent checking more upgrades only one can be selected per click
                 break;
             }
         }
     }
 
-    wasMousePressed = Mouse::isButtonPressed(Mouse::Left);  // Update previous mouse state
+    wasMousePressed = Mouse::isButtonPressed(Mouse::Left);  
 }
 void healingUpgrade()
 {
@@ -3163,9 +3155,8 @@ void healingUpgrade()
         heal(amount * deltaTime);
     }
 }
-void upgradeItemsHandeling()
+void upgradeItemsHandeling() // byros 3 upgrades baad ma ye3raf any wahed feehom valid
 {
-    //Origin
     for (int i = 0; i < UPGRADES_NUM; i++)
     {
         allUpgrades[i].sprite.setOrigin(allUpgrades[i].sprite.getLocalBounds().width / 2, allUpgrades[i].sprite.getLocalBounds().height / 2);
@@ -3180,7 +3171,7 @@ void upgradeItemsHandeling()
         upgradesTextHandeling();
         upgradeLevelText();
         upgradeDescriptionHandeling();
-        isMenuOpen = false;
+        isMenuOpen = false;            //btkhaly matedkholsh el for loop tany baad ma yros talata
     }
 }
 void maxHealthIncrease(int addValue)
@@ -3240,7 +3231,7 @@ void maxLevelChecker()
 {
     int validIndex = 0;
     int validCount = 0;
-    fill(begin(validUpgrades), end(validUpgrades), 0);     //??? Adam
+    fill(begin(validUpgrades), end(validUpgrades), 0);   
 
     for (int i = 0; i < UPGRADES_NUM; i++)
     {
@@ -3251,12 +3242,6 @@ void maxLevelChecker()
         }
     }
     validCount = validIndex;
-    if (validCount == 2)        //could crash
-    {
-        validCount = 3;
-        validUpgrades[2] = rand() % 6;
-        allUpgrades[validUpgrades[2]].sprite.setColor(Color::Black);
-    }
     for (int i = 0; i < 3; i++)
     {
         validIndex = rand() % validCount;
@@ -3388,7 +3373,7 @@ void optionsHandler()
     if (volumeButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
     {
         volumeButton.sprite.setTextureRect(IntRect(0, 108, 102, 108));
-        volumeButton.sprite.setColor(sf::Color(200, 200, 200));
+        volumeButton.sprite.setColor(Color(200, 200, 200));
         if (Mouse::isButtonPressed(Mouse::Left)) {
             if (backgroundMusic.getVolume() > 0) {
                 volume = 0;
@@ -3443,7 +3428,7 @@ void optionsHandler()
     if (sliderButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y) || isDragging)
     {
         sliderButton.sprite.setTextureRect(IntRect(0, 16, 15, 16));
-        sliderButton.sprite.setColor(sf::Color(200, 200, 200));
+        sliderButton.sprite.setColor(Color(200, 200, 200));
 
         if (Mouse::isButtonPressed(Mouse::Left)) {
             isDragging = true; // Start dragging
@@ -3542,7 +3527,7 @@ void updateChestLogic() {//logy
     // Break chest
     // chest 1
 
-    if (!chest1.chestbroken && whipHitbox.getGlobalBounds().intersects(chest1.sprite.getGlobalBounds())) {
+    if ((!chest1.chestbroken && whipHitbox.getGlobalBounds().intersects(chest1.sprite.getGlobalBounds())) || (!chest1.chestbroken && ring.sprite.getGlobalBounds().intersects(chest1.sprite.getGlobalBounds()))) {
         playChestBreakSound();
         chest1.chestbroken = true;
     }
@@ -3572,7 +3557,7 @@ void updateChestLogic() {//logy
     }
 
     // chest 2
-    if (!chest2.chestbroken && whipHitbox.getGlobalBounds().intersects(chest2.sprite.getGlobalBounds())) {
+    if ((!chest2.chestbroken && whipHitbox.getGlobalBounds().intersects(chest2.sprite.getGlobalBounds())) || (!chest2.chestbroken && ring.sprite.getGlobalBounds().intersects(chest2.sprite.getGlobalBounds()))) {
         playChestBreakSound();
         chest2.chestbroken = true;
     }
@@ -3603,7 +3588,7 @@ void updateChestLogic() {//logy
     }
 
     // chest 3 
-    if (!chest3.chestbroken && whipHitbox.getGlobalBounds().intersects(chest3.sprite.getGlobalBounds())) {
+    if ((!chest3.chestbroken && whipHitbox.getGlobalBounds().intersects(chest3.sprite.getGlobalBounds())) || (!chest3.chestbroken && ring.sprite.getGlobalBounds().intersects(chest3.sprite.getGlobalBounds()))) {
         playChestBreakSound();
         chest3.chestbroken = true;
     }
@@ -4533,7 +4518,7 @@ void leaderboardSort() {
     for (int i = 0; i < 9; i++) {
         int maxIndex = i;
         for (int j = i + 1; j < 10; j++) {
-            if (highscores[j].score > highscores[maxIndex].score) {
+            if (highscores[j].time > highscores[maxIndex].time) {
                 maxIndex = j;
             }
         }
@@ -4544,9 +4529,6 @@ void leaderboardSort() {
     }
 
     // find minimum to replace it with the score if we get something higher (to shift scores)
-}
-void leaderboardHandler() {
-
 }
 void nameWidgets() {
 
@@ -4577,7 +4559,7 @@ void nameHandler(Event event) {
         if (doneButton.sprite.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
         {
             doneButton.sprite.setTextureRect(IntRect(0, 108, 222, 108));
-            doneButton.sprite.setColor(sf::Color(200, 200, 200));
+            doneButton.sprite.setColor(Color(200, 200, 200));
             if (Mouse::isButtonPressed(Mouse::Left)) {
                 clickSound.play();
                 sleep(milliseconds(200));
@@ -4600,12 +4582,12 @@ void nameHandler(Event event) {
         }
 
         // Text entered
-        if (event.type == sf::Event::TextEntered) {
+        if (event.type == Event::TextEntered) {
             if (event.text.unicode == '\b') {
                 if (!current.name.empty())
                     current.name.pop_back();
             }
-            else if (current.name.size() < 21 && event.text.unicode < 128) {
+            else if (current.name.size() < 21 && event.text.unicode != 32 && event.text.unicode < 128) {
                 current.name += static_cast<char>(event.text.unicode);
             }
         }
